@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aurora-geoenergy-postgres
+    environment:
+      POSTGRES_USER: aurora
+      POSTGRES_PASSWORD: aurora_password
+      POSTGRES_DB: aurora_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aurora -d aurora_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurora-geoenergy-network
+
+  # Python FastAPI Backend
+  backend:
+    build:
+      context: ./backend-python
+      dockerfile: Dockerfile
+    container_name: aurora-geoenergy-backend
+    environment:
+      DATABASE_URL: postgresql://aurora:aurora_password@postgres:5432/aurora_db
+      DATABASE_POOL_SIZE: 10
+      ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend-python/src:/app/src
+      - ./backend-python/main.py:/app/main.py
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurora-geoenergy-network
+
+volumes:
+  postgres_data:
+
+networks:
+  aurora-geoenergy-network:
+    driver: bridge
