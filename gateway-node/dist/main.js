@@ -5,17 +5,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
 const express_1 = __importDefault(require("express"));
-const config_1 = require("@core/config");
-const logger_1 = require("@core/logger");
-const requestIdMiddleware_1 = require("@presentation/middleware/requestIdMiddleware");
-const authMiddleware_1 = require("@presentation/middleware/authMiddleware");
-const rateLimitMiddleware_1 = require("@presentation/middleware/rateLimitMiddleware");
-const errorHandlerMiddleware_1 = require("@presentation/middleware/errorHandlerMiddleware");
-const healthRoutes_1 = require("@presentation/routes/healthRoutes");
-const authRoutes_1 = require("@presentation/routes/authRoutes");
-const promotionRoutes_1 = require("@presentation/routes/promotionRoutes");
-const proxyRoutes_1 = require("@presentation/routes/proxyRoutes");
-const AxiosBackendClient_1 = require("@infrastructure/http/AxiosBackendClient");
+const config_1 = require("./core/config");
+const logger_1 = require("./core/logger");
+const requestIdMiddleware_1 = require("./presentation/middleware/requestIdMiddleware");
+const authMiddleware_1 = require("./presentation/middleware/authMiddleware");
+const rateLimitMiddleware_1 = require("./presentation/middleware/rateLimitMiddleware");
+const errorHandlerMiddleware_1 = require("./presentation/middleware/errorHandlerMiddleware");
+const healthRoutes_1 = require("./presentation/routes/healthRoutes");
+const authRoutes_1 = require("./presentation/routes/authRoutes");
+const promotionRoutes_1 = require("./presentation/routes/promotionRoutes");
+const proxyRoutes_1 = require("./presentation/routes/proxyRoutes");
+const AxiosBackendClient_1 = require("./infrastructure/http/AxiosBackendClient");
 const app = (0, express_1.default)();
 try {
     const config = (0, config_1.getConfig)();

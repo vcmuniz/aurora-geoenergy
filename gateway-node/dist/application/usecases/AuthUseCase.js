@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthUseCase = void 0;
-const logger_1 = require("@core/logger");
+const logger_1 = require("../../core/logger");
 class AuthUseCase {
     constructor(backendClient) {
         this.backendClient = backendClient;

@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorHandlerMiddleware = errorHandlerMiddleware;
-const exceptions_1 = require("@domain/exceptions");
-const logger_1 = require("@core/logger");
-const utils_1 = require("@core/utils");
+const exceptions_1 = require("../../domain/exceptions");
+const logger_1 = require("../../core/logger");
+const utils_1 = require("../../core/utils");
 function errorHandlerMiddleware(err, req, res, next) {
     const requestId = req.context?.requestId || 'unknown';
     if (err instanceof exceptions_1.DomainException) {
