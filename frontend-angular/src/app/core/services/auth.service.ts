@@ -27,6 +27,10 @@ export class AuthService {
       );
   }
 
+  getMe(): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/auth/me`);
+  }
+
   logout(): void {
     localStorage.removeItem('token');
     this.userSubject.next(null);

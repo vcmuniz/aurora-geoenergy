@@ -13,6 +13,8 @@ import { User } from '@shared/models/auth.model';
 })
 export class DashboardComponent implements OnInit {
   user: User | null = null;
+  loading = true;
+  error = '';
 
   constructor(
     private authService: AuthService,
@@ -22,6 +24,19 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.authService.user$.subscribe(user => {
       this.user = user;
+    });
+
+    // Busca dados completos do usuário
+    this.authService.getMe().subscribe({
+      next: (user) => {
+        this.user = user;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Erro ao carregar dados do usuário';
+        this.loading = false;
+        console.error(err);
+      }
     });
   }
 
