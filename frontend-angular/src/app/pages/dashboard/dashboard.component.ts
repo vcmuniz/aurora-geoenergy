@@ -29,7 +29,9 @@ export class DashboardComponent implements OnInit {
     // Busca dados completos do usuário
     this.authService.getMe().subscribe({
       next: (response) => {
-        this.user = response.data;
+        if (response.data) {
+          this.user = response.data;
+        }
         this.loading = false;
       },
       error: (err) => {
