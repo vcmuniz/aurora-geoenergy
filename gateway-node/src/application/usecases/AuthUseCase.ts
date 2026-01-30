@@ -12,7 +12,10 @@ export class AuthUseCase {
     );
 
     const response = await this.backendClient.post('/auth/login', { email, password }, context.requestId);
-    return response.data;
+    // Backend retorna ApiResponse, então response.data é o ApiResponse completo
+    // Precisamos extrair o .data interno
+    const apiResponse = response.data as any;
+    return apiResponse.data || apiResponse;
   }
 
   async getMe(context: IRequestContext, authHeader?: string): Promise<any> {
@@ -26,6 +29,8 @@ export class AuthUseCase {
       headers.Authorization = authHeader;
     }
     const response = await this.backendClient.get('/auth/me', context.requestId, headers);
-    return response.data;
+    // Backend retorna ApiResponse, então response.data é o ApiResponse completo
+    const apiResponse = response.data as any;
+    return apiResponse.data || apiResponse;
   }
 }

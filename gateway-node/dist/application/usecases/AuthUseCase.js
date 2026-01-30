@@ -9,7 +9,10 @@ class AuthUseCase {
     async login(email, password, context) {
         logger_1.logger.info({ requestId: context.requestId, email }, 'Executing login use case');
         const response = await this.backendClient.post('/auth/login', { email, password }, context.requestId);
-        return response.data;
+        // Backend retorna ApiResponse, então response.data é o ApiResponse completo
+        // Precisamos extrair o .data interno
+        const apiResponse = response.data;
+        return apiResponse.data || apiResponse;
     }
     async getMe(context, authHeader) {
         logger_1.logger.info({ requestId: context.requestId, userId: context.user?.id }, 'Executing get me use case');
@@ -18,7 +21,9 @@ class AuthUseCase {
             headers.Authorization = authHeader;
         }
         const response = await this.backendClient.get('/auth/me', context.requestId, headers);
-        return response.data;
+        // Backend retorna ApiResponse, então response.data é o ApiResponse completo
+        const apiResponse = response.data;
+        return apiResponse.data || apiResponse;
     }
 }
 exports.AuthUseCase = AuthUseCase;
