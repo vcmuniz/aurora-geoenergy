@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 
 from src.infrastructure.database import get_db
@@ -30,12 +30,13 @@ async def login(request: LoginRequest, session: Session = Depends(get_db)):
     auth_service = AuthService(session)
     user = auth_service.authenticate(request.email, request.password)
     
+    now = datetime.now(timezone.utc)
     payload = {
         "sub": user.id,
         "email": user.email,
         "name": user.name,
-        "iat": datetime.utcnow(),
-        "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+        "iat": now,
+        "exp": now + timedelta(hours=JWT_EXPIRATION_HOURS)
     }
 
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)

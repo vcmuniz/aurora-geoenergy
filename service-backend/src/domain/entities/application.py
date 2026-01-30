@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 class Application:
@@ -14,7 +14,7 @@ class Application:
         self.name = name
         self.owner_team = owner_team
         self.repo_url = repo_url
-        self.created_at = created_at or datetime.utcnow()
+        self.created_at = created_at or datetime.now(timezone.utc)
 
     def __repr__(self):
         return f"<Application id={self.id} name={self.name}>"

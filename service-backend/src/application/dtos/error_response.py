@@ -1,10 +1,21 @@
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, ConfigDict, field_serializer
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class ErrorResponse(BaseModel):
     """Modelo padrão de resposta de erro"""
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "error_code": "AUTH_INVALID_CREDENTIALS",
+                "message": "Email ou senha incorretos",
+                "details": None,
+                "timestamp": "2026-01-30T14:03:00"
+            }
+        }
+    )
     
     error_code: str
     message: str
@@ -13,19 +24,9 @@ class ErrorResponse(BaseModel):
     
     def __init__(self, **data):
         if 'timestamp' not in data:
-            data['timestamp'] = datetime.utcnow()
+            data['timestamp'] = datetime.now(timezone.utc)
         super().__init__(**data)
     
     @field_serializer('timestamp')
     def serialize_timestamp(self, value: datetime):
         return value.isoformat() if value else None
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "error_code": "AUTH_INVALID_CREDENTIALS",
-                "message": "Email ou senha incorretos",
-                "details": None,
-                "timestamp": "2026-01-30T14:03:00"
-            }
-        }

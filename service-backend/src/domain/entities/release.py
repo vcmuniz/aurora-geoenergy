@@ -1,5 +1,5 @@
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 
@@ -37,7 +37,7 @@ class Release:
         self.evidence_url = evidence_url
         self.evidence_score = evidence_score
         self.version_row = version_row
-        self.created_at = created_at or datetime.utcnow()
+        self.created_at = created_at or datetime.now(timezone.utc)
         self.deployed_at = deployed_at
 
     def __repr__(self):

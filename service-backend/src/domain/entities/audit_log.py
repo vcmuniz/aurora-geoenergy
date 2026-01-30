@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 
 class AuditLog:
@@ -20,7 +20,7 @@ class AuditLog:
         self.entity_id = entity_id
         self.payload = payload
         self.request_id = request_id
-        self.created_at = created_at or datetime.utcnow()
+        self.created_at = created_at or datetime.now(timezone.utc)
 
     def __repr__(self):
         return f"<AuditLog id={self.id} action={self.action} entity={self.entity} entity_id={self.entity_id}>"

@@ -1,5 +1,5 @@
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 class UserRole(str, Enum):
     ADMIN = "admin"
@@ -12,4 +12,4 @@ class User:
         self.email = email
         self.name = name
         self.role = role
-        self.created_at = created_at or datetime.utcnow()
+        self.created_at = created_at or datetime.now(timezone.utc)
