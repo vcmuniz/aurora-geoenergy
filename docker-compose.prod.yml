@@ -19,60 +19,56 @@ services:
       retries: 5
     networks:
       - aurora-geoenergy-network
+    restart: unless-stopped
 
-  # Node.js API Gateway
+  # Node.js API Gateway (Produção)
   gateway:
     build:
       context: ./gateway-node
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.prod
     container_name: aurora-geoenergy-gateway
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 3000
       BACKEND_URL: http://service-backend:8000
       JWT_SECRET: ${JWT_SECRET:-seu-secret-super-seguro-aqui}
-      LOG_LEVEL: info
+      LOG_LEVEL: warn
     ports:
       - "3000:3000"
-    volumes:
-      - ./gateway-node/src:/app/src
-      - ./gateway-node/dist:/app/dist
     depends_on:
       - service-backend
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - aurora-geoenergy-network
+    restart: unless-stopped
 
-  # Python FastAPI Backend
+  # Python FastAPI Backend (Produção)
   service-backend:
     build:
       context: ./service-backend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.prod
     container_name: aurora-geoenergy-service-backend
     environment:
       DATABASE_URL: postgresql://aurora:aurora_password@postgres:5432/aurora_db
-      DATABASE_POOL_SIZE: 10
-      ENVIRONMENT: development
+      DATABASE_POOL_SIZE: 20
+      ENVIRONMENT: production
     ports:
       - "8000:8000"
-    volumes:
-      - ./service-backend/src:/app/src
-      - ./service-backend/main.py:/app/main.py
-      - ./service-backend/migrations:/app/migrations
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - aurora-geoenergy-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:

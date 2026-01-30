@@ -12,14 +12,16 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
+# Copy application files for development
 COPY main.py .
 COPY entrypoint.sh .
 COPY seed.py .
+COPY alembic.ini .
 RUN chmod +x entrypoint.sh
 
-# Copy migrations
-COPY alembic.ini .
+# Copy source code and migrations
+COPY src ./src
+COPY migrations ./migrations
 
 # Expose port
 EXPOSE 8000
@@ -28,5 +30,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=5 \
   CMD curl -f http://localhost:8000/health || exit 1
 
-# Run application
+# Run with hot reload
 CMD ["./entrypoint.sh"]
