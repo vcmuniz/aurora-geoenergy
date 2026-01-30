@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import { getConfig } from '@core/config';
 import { logger } from '@core/logger';
 import { requestIdMiddleware } from '@presentation/middleware/requestIdMiddleware';
@@ -17,6 +18,14 @@ const app = express();
 
 try {
   const config = getConfig();
+
+  // CORS configuration
+  app.use(cors({
+    origin: ['http://localhost:4200', 'http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
 
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ limit: '10mb', extended: true }));

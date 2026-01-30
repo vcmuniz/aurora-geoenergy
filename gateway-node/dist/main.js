@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
 const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
 const config_1 = require("./core/config");
 const logger_1 = require("./core/logger");
 const requestIdMiddleware_1 = require("./presentation/middleware/requestIdMiddleware");
@@ -20,6 +21,13 @@ const AxiosBackendClient_1 = require("./infrastructure/http/AxiosBackendClient")
 const app = (0, express_1.default)();
 try {
     const config = (0, config_1.getConfig)();
+    // CORS configuration
+    app.use((0, cors_1.default)({
+        origin: ['http://localhost:4200', 'http://localhost:3000'],
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+        allowedHeaders: ['Content-Type', 'Authorization']
+    }));
     app.use(express_1.default.json({ limit: '10mb' }));
     app.use(express_1.default.urlencoded({ limit: '10mb', extended: true }));
     app.use(requestIdMiddleware_1.requestIdMiddleware);
