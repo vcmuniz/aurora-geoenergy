@@ -39,12 +39,13 @@ const options = {
             email: {
               type: 'string',
               format: 'email',
-              example: 'teste@example.com',
+              example: 'admin@company.co',
+              description: 'Use: admin@company.co, approver@company.co, ou viewer@company.co',
             },
             password: {
               type: 'string',
               format: 'password',
-              example: 'senha123',
+              example: 'password123',
             },
           },
         },
