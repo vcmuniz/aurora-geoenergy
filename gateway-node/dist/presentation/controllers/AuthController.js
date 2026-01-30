@@ -10,10 +10,10 @@ class AuthController {
         try {
             const { email, password } = req.body;
             if (!email || !password) {
-                return res.status(400).json((0, utils_1.formatResponse)(false, undefined, 'Email and password required', 'VALIDATION_ERROR', req.context.requestId));
+                return res.status(400).json((0, utils_1.formatErrorResponse)('VALIDATION_ERROR', 'Email and password required', undefined, req.context.requestId));
             }
             const result = await this.authUseCase.login(email, password, req.context);
-            res.status(200).json((0, utils_1.formatResponse)(true, result, undefined, undefined, req.context.requestId));
+            res.status(200).json((0, utils_1.formatSuccessResponse)(result, req.context.requestId));
         }
         catch (error) {
             next(error);
@@ -23,7 +23,7 @@ class AuthController {
         try {
             const authHeader = req.headers.authorization;
             const result = await this.authUseCase.getMe(req.context, authHeader);
-            res.status(200).json((0, utils_1.formatResponse)(true, result, undefined, undefined, req.context.requestId));
+            res.status(200).json((0, utils_1.formatSuccessResponse)(result, req.context.requestId));
         }
         catch (error) {
             next(error);

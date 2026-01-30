@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { DomainException } from '@domain/exceptions';
 import { logger } from '@core/logger';
-import { formatResponse } from '@core/utils';
+import { formatErrorResponse } from '@core/utils';
 
 export function errorHandlerMiddleware(
   err: Error,
@@ -18,7 +18,7 @@ export function errorHandlerMiddleware(
     );
 
     return res.status(err.statusCode).json(
-      formatResponse(false, undefined, err.message, err.code, requestId)
+      formatErrorResponse(err.code, err.message, undefined, requestId)
     );
   }
 
@@ -28,12 +28,6 @@ export function errorHandlerMiddleware(
   );
 
   res.status(500).json(
-    formatResponse(
-      false,
-      undefined,
-      'Internal server error',
-      'INTERNAL_SERVER_ERROR',
-      requestId
-    )
+    formatErrorResponse('INTERNAL_SERVER_ERROR', 'Internal server error', undefined, requestId)
   );
 }

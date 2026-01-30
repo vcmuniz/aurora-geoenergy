@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from src.presentation.middleware.exception_handler import setup_exception_handlers
+from src.presentation.middleware.request_id_middleware import request_id_middleware
 from src.presentation.controllers.auth_controller import router as auth_router
 
 app = FastAPI(
@@ -7,6 +8,9 @@ app = FastAPI(
     description="API para gerenciamento de releases com policies configuráveis",
     version="1.0.0"
 )
+
+# Registrar middleware
+app.middleware("http")(request_id_middleware)
 
 setup_exception_handlers(app)
 

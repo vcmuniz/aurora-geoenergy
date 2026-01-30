@@ -4,8 +4,9 @@ import { getConfig } from '@core/config';
 import { UnauthorizedException } from '@domain/exceptions';
 import { addUserToContext } from '@core/utils';
 import { logger } from '@core/logger';
+import { formatErrorResponse } from '@core/utils';
 
-const PUBLIC_ROUTES = ['/health', '/api/auth/login', '/api/auth/me'];
+const PUBLIC_ROUTES = ['/health', '/api/health', '/api/auth/login', '/api/auth/me'];
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
   if (PUBLIC_ROUTES.includes(req.path)) {
@@ -18,13 +19,9 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
       { requestId: req.context.requestId, path: req.path },
       'Missing Authorization header'
     );
-    return res.status(401).json({
-      success: false,
-      error: 'Missing or invalid Authorization header',
-      code: 'AUTH_MISSING_TOKEN',
-      requestId: req.context.requestId,
-      timestamp: new Date().toISOString(),
-    });
+    return res.status(401).json(
+      formatErrorResponse('AUTH_MISSING_TOKEN', 'Missing or invalid Authorization header', undefined, req.context.requestId)
+    );
   }
 
   const token = authHeader.substring(7);
@@ -47,12 +44,8 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
       { requestId: req.context.requestId, error: (error as Error).message },
       'Invalid JWT token'
     );
-    res.status(401).json({
-      success: false,
-      error: 'Invalid or expired token',
-      code: 'AUTH_INVALID_TOKEN',
-      requestId: req.context.requestId,
-      timestamp: new Date().toISOString(),
-    });
+    res.status(401).json(
+      formatErrorResponse('AUTH_INVALID_TOKEN', 'Invalid or expired token', undefined, req.context.requestId)
+    );
   }
 }
