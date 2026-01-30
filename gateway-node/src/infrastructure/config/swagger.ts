@@ -39,7 +39,7 @@ const options = {
             email: {
               type: 'string',
               format: 'email',
-              example: 'user@example.com',
+              example: 'teste@example.com',
             },
             password: {
               type: 'string',
