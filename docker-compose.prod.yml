@@ -70,6 +70,25 @@ services:
       - aurora-geoenergy-network
     restart: unless-stopped
 
+  # Angular Frontend (Produção)
+  frontend:
+    build:
+      context: ./frontend-angular
+      dockerfile: Dockerfile.prod
+    container_name: aurora-geoenergy-frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - gateway
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - aurora-geoenergy-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
 
