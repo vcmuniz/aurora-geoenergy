@@ -25,9 +25,9 @@ try {
     app.use(rateLimitMiddleware_1.rateLimitByIp);
     const backendClient = new AxiosBackendClient_1.AxiosBackendClient(config.backendUrl);
     app.use((0, healthRoutes_1.createHealthRoutes)());
+    app.use((0, authRoutes_1.createAuthRoutes)(backendClient));
     app.use(authMiddleware_1.authMiddleware);
     app.use(rateLimitMiddleware_1.rateLimitByUser);
-    app.use((0, authRoutes_1.createAuthRoutes)(backendClient));
     app.use((0, promotionRoutes_1.createPromotionRoutes)(backendClient));
     app.use('/api', (0, proxyRoutes_1.createProxyRoutes)(backendClient));
     app.use(errorHandlerMiddleware_1.errorHandlerMiddleware);

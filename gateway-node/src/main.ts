@@ -26,11 +26,11 @@ try {
   const backendClient = new AxiosBackendClient(config.backendUrl);
 
   app.use(createHealthRoutes());
+  app.use(createAuthRoutes(backendClient));
 
   app.use(authMiddleware);
   app.use(rateLimitByUser);
 
-  app.use(createAuthRoutes(backendClient));
   app.use(createPromotionRoutes(backendClient));
   app.use('/api', createProxyRoutes(backendClient));
 
