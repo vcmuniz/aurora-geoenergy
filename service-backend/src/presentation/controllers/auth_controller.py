@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, Header
-from pydantic import BaseModel, EmailStr
+from fastapi import APIRouter, Depends, Header, Request
 from sqlalchemy.orm import Session
 import jwt
 from datetime import datetime, timedelta, timezone
@@ -8,25 +7,21 @@ import os
 from src.infrastructure.database import get_db
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.application.services.auth_service import AuthService
+from src.application.dtos.auth_dtos import LoginRequest, LoginData, UserData
+from src.application.dtos.api_response import ApiResponse
 from src.core.auth import extract_user_from_token
 
 router = APIRouter(tags=["Auth"])
-
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
-
-class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str
-    user: dict
 
 JWT_SECRET = os.getenv("JWT_SECRET", "your_jwt_secret_here_change_in_prod")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 
-@router.post("/auth/login", response_model=LoginResponse)
-async def login(request: LoginRequest, session: Session = Depends(get_db)):
+
+@router.post("/auth/login")
+async def login(request_obj: Request, request: LoginRequest, session: Session = Depends(get_db)):
+    request_id = getattr(request_obj.state, 'request_id', None)
+    
     auth_service = AuthService(session)
     user = auth_service.authenticate(request.email, request.password)
     
@@ -41,20 +36,23 @@ async def login(request: LoginRequest, session: Session = Depends(get_db)):
 
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-    return LoginResponse(
+    login_data = LoginData(
         access_token=token,
         token_type="bearer",
-        user={
-            "id": user.id,
-            "email": user.email,
-            "name": user.name,
-            "role": user.role.value
-        }
+        user=UserData(
+            id=user.id,
+            email=user.email,
+            name=user.name,
+            role=user.role.value
+        )
     )
+    
+    return ApiResponse.success_response(login_data.model_dump(), request_id)
 
 
 @router.get("/auth/me")
 async def get_current_user(
+    request_obj: Request,
     session: Session = Depends(get_db),
     authorization: str = Header(None)
 ):
@@ -63,6 +61,8 @@ async def get_current_user(
 
     O gateway usa este endpoint para validar a role do user
     """
+    request_id = getattr(request_obj.state, 'request_id', None)
+    
     # Extrai email do token JWT
     token_payload = extract_user_from_token(authorization)
 
@@ -70,9 +70,11 @@ async def get_current_user(
     user_repo = UserRepository(session)
     user = user_repo.get_by_email(token_payload.email)
 
-    return {
-        "id": user.id,
-        "email": token_payload.email,
-        "name": token_payload.name,
-        "role": user.role.value if user else None
-    }
+    user_data = UserData(
+        id=str(user.id),
+        email=token_payload.email,
+        name=token_payload.name,
+        role=user.role.value if user else None
+    )
+    
+    return ApiResponse.success_response(user_data.model_dump(), request_id)
