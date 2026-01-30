@@ -1,7 +1,7 @@
 """Adicionar coluna password_hash na tabela users
 
 Revision ID: 6f8e4c2a1b3d
-Revises: 4dcff14409e6
+Revises: 1d076041e0e4
 Create Date: 2026-01-30 13:56:00.000000
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '6f8e4c2a1b3d'
-down_revision: Union[str, None] = '4dcff14409e6'
+down_revision: Union[str, None] = '1d076041e0e4'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
