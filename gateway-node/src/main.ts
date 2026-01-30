@@ -7,6 +7,7 @@ import { authMiddleware } from '@presentation/middleware/authMiddleware';
 import { rateLimitByIp, rateLimitByUser } from '@presentation/middleware/rateLimitMiddleware';
 import { errorHandlerMiddleware } from '@presentation/middleware/errorHandlerMiddleware';
 import { createHealthRoutes } from '@presentation/routes/healthRoutes';
+import { createSwaggerRoutes } from '@presentation/routes/swaggerRoutes';
 import { createAuthRoutes } from '@presentation/routes/authRoutes';
 import { createPromotionRoutes } from '@presentation/routes/promotionRoutes';
 import { createProxyRoutes } from '@presentation/routes/proxyRoutes';
@@ -26,6 +27,7 @@ try {
   const backendClient = new AxiosBackendClient(config.backendUrl);
 
   app.use(createHealthRoutes());
+  app.use(createSwaggerRoutes());
   app.use(createAuthRoutes(backendClient));
 
   app.use(authMiddleware);
@@ -39,6 +41,7 @@ try {
   const server = app.listen(config.port, () => {
     logger.info({ port: config.port }, `API Gateway running on port ${config.port}`);
     logger.info({ backendUrl: config.backendUrl }, `Backend URL: ${config.backendUrl}`);
+    logger.info({ docsUrl: `http://localhost:${config.port}/docs` }, `Swagger docs: http://localhost:${config.port}/docs`);
   });
 
   process.on('SIGTERM', () => {

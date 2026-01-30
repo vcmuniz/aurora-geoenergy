@@ -12,6 +12,7 @@ const authMiddleware_1 = require("./presentation/middleware/authMiddleware");
 const rateLimitMiddleware_1 = require("./presentation/middleware/rateLimitMiddleware");
 const errorHandlerMiddleware_1 = require("./presentation/middleware/errorHandlerMiddleware");
 const healthRoutes_1 = require("./presentation/routes/healthRoutes");
+const swaggerRoutes_1 = require("./presentation/routes/swaggerRoutes");
 const authRoutes_1 = require("./presentation/routes/authRoutes");
 const promotionRoutes_1 = require("./presentation/routes/promotionRoutes");
 const proxyRoutes_1 = require("./presentation/routes/proxyRoutes");
@@ -25,6 +26,7 @@ try {
     app.use(rateLimitMiddleware_1.rateLimitByIp);
     const backendClient = new AxiosBackendClient_1.AxiosBackendClient(config.backendUrl);
     app.use((0, healthRoutes_1.createHealthRoutes)());
+    app.use((0, swaggerRoutes_1.createSwaggerRoutes)());
     app.use((0, authRoutes_1.createAuthRoutes)(backendClient));
     app.use(authMiddleware_1.authMiddleware);
     app.use(rateLimitMiddleware_1.rateLimitByUser);
@@ -34,6 +36,7 @@ try {
     const server = app.listen(config.port, () => {
         logger_1.logger.info({ port: config.port }, `API Gateway running on port ${config.port}`);
         logger_1.logger.info({ backendUrl: config.backendUrl }, `Backend URL: ${config.backendUrl}`);
+        logger_1.logger.info({ docsUrl: `http://localhost:${config.port}/docs` }, `Swagger docs: http://localhost:${config.port}/docs`);
     });
     process.on('SIGTERM', () => {
         logger_1.logger.info('SIGTERM received, shutting down gracefully');
