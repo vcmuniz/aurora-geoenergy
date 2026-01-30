@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { LoginRequest, LoginResponse, User } from '@shared/models/auth.model';
+import { LoginRequest, LoginResponse, MeResponse, User } from '@shared/models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -27,8 +27,15 @@ export class AuthService {
       );
   }
 
-  getMe(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/auth/me`);
+  getMe(): Observable<MeResponse> {
+    return this.http.get<MeResponse>(`${this.apiUrl}/auth/me`)
+      .pipe(
+        tap(response => {
+          if (response.success && response.data) {
+            this.userSubject.next(response.data);
+          }
+        })
+      );
   }
 
   logout(): void {
@@ -45,10 +52,7 @@ export class AuthService {
   }
 
   private loadStoredUser(): void {
-    const token = this.getToken();
-    if (token) {
-      // Token ainda válido, mas usuário será carregado ao fazer chamada de /auth/me
-      // Por enquanto deixamos null até a próxima requisição
-    }
+    // Dados do usuário são carregados via /auth/me no AppComponent
+    // Apenas o token é mantido no localStorage
   }
 }

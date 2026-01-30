@@ -16,6 +16,13 @@ export interface LoginResponse {
   timestamp: string;
 }
 
+export interface MeResponse {
+  success: boolean;
+  data: User;
+  requestId: string;
+  timestamp: string;
+}
+
 export interface User {
   id: string;
   email: string;

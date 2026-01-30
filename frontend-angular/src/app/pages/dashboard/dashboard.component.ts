@@ -28,8 +28,8 @@ export class DashboardComponent implements OnInit {
 
     // Busca dados completos do usuário
     this.authService.getMe().subscribe({
-      next: (user) => {
-        this.user = user;
+      next: (response) => {
+        this.user = response.data;
         this.loading = false;
       },
       error: (err) => {
