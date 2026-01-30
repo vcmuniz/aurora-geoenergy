@@ -120,7 +120,7 @@ const options = {
     security: [],
   },
   apis: [
-    path.join(__dirname, '../routes/*.ts'),
+    path.join(__dirname, '../../presentation/routes/**/*.js'),
   ],
 };
 
