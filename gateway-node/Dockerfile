@@ -18,7 +18,7 @@ COPY package*.json ./
 
 RUN npm ci
 
-COPY --from=builder /app/dist ./dist
+COPY tsconfig.json .
 COPY nodemon.json .
 COPY src ./src
 
