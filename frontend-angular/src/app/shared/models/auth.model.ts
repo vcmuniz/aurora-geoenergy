@@ -3,10 +3,17 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface LoginResponse {
+export interface LoginResponseData {
   access_token: string;
   token_type: string;
   user: User;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  data: LoginResponseData;
+  requestId: string;
+  timestamp: string;
 }
 
 export interface User {

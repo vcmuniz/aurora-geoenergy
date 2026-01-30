@@ -19,8 +19,10 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, request)
       .pipe(
         tap(response => {
-          localStorage.setItem('token', response.access_token);
-          this.userSubject.next(response.user);
+          if (response.success && response.data) {
+            localStorage.setItem('token', response.data.access_token);
+            this.userSubject.next(response.data.user);
+          }
         })
       );
   }
