@@ -6,13 +6,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.logger = void 0;
 const pino_1 = __importDefault(require("pino"));
 const logLevel = process.env.LOG_LEVEL || 'info';
+const isDevelopment = process.env.NODE_ENV !== 'production';
 exports.logger = (0, pino_1.default)({
     level: logLevel,
-    transport: {
+}, isDevelopment
+    ? pino_1.default.transport({
         target: 'pino-pretty',
         options: {
             colorize: true,
             singleLine: false,
         },
-    },
-});
+    })
+    : undefined);
