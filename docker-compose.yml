@@ -35,6 +35,7 @@ services:
     volumes:
       - ./backend-python/src:/app/src
       - ./backend-python/main.py:/app/main.py
+      - ./backend-python/migrations:/app/migrations
     depends_on:
       postgres:
         condition: service_healthy
