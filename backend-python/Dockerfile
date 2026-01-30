@@ -18,7 +18,6 @@ COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
 # Copy migrations
-COPY migrations ./migrations
 COPY alembic.ini .
 
 # Expose port
