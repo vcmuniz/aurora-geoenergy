@@ -46,8 +46,8 @@ export class ValidationException extends DomainException {
 }
 
 export class BackendException extends DomainException {
-  constructor(message: string = 'Backend service unavailable') {
-    super('BACKEND_UNAVAILABLE', message, 502);
+  constructor(message: string = 'Backend service unavailable', statusCode: number = 502) {
+    super('BACKEND_ERROR', message, statusCode);
     this.name = 'BackendException';
   }
 }

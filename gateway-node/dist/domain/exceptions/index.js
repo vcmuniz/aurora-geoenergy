@@ -47,8 +47,8 @@ class ValidationException extends DomainException {
 }
 exports.ValidationException = ValidationException;
 class BackendException extends DomainException {
-    constructor(message = 'Backend service unavailable') {
-        super('BACKEND_UNAVAILABLE', message, 502);
+    constructor(message = 'Backend service unavailable', statusCode = 502) {
+        super('BACKEND_ERROR', message, statusCode);
         this.name = 'BackendException';
     }
 }

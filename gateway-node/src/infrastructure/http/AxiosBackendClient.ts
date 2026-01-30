@@ -47,12 +47,16 @@ export class AxiosBackendClient implements IBackendClient {
         },
       });
 
-      if (response.status >= 500) {
+      // Se backend retornou erro, lança exceção
+      if (response.status >= 400) {
         logger.warn(
-          { requestId, method, path, status: response.status },
-          'Backend returned server error'
+          { requestId, method, path, status: response.status, data: response.data },
+          'Backend returned error'
         );
-        throw new BackendException('Backend service error');
+        throw new BackendException(
+          response.data?.message || 'Backend error',
+          response.status
+        );
       }
 
       return {

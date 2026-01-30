@@ -38,9 +38,10 @@ class AxiosBackendClient {
                     ...(requestId && { 'X-Request-ID': requestId }),
                 },
             });
-            if (response.status >= 500) {
-                logger_1.logger.warn({ requestId, method, path, status: response.status }, 'Backend returned server error');
-                throw new exceptions_1.BackendException('Backend service error');
+            // Se backend retornou erro, lança exceção
+            if (response.status >= 400) {
+                logger_1.logger.warn({ requestId, method, path, status: response.status, data: response.data }, 'Backend returned error');
+                throw new exceptions_1.BackendException(response.data?.message || 'Backend error', response.status);
             }
             return {
                 status: response.status,

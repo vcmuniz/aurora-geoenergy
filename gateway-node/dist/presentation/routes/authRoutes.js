@@ -30,9 +30,7 @@ function createAuthRoutes(backendClient) {
      *       401:
      *         description: Credenciais inválidas
      */
-    router.post('/api/auth/login', (req, res) => authController.login(req, res).catch((err) => {
-        throw err;
-    }));
+    router.post('/api/auth/login', (req, res, next) => authController.login(req, res, next));
     /**
      * @swagger
      * /api/auth/me:
@@ -53,8 +51,6 @@ function createAuthRoutes(backendClient) {
      *       401:
      *         description: Não autenticado
      */
-    router.get('/api/auth/me', (req, res) => authController.getMe(req, res).catch((err) => {
-        throw err;
-    }));
+    router.get('/api/auth/me', (req, res, next) => authController.getMe(req, res, next));
     return router;
 }

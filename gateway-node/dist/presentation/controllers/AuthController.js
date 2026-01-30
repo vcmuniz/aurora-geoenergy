@@ -1,13 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
-const logger_1 = require("../../core/logger");
 const utils_1 = require("../../core/utils");
 class AuthController {
     constructor(authUseCase) {
         this.authUseCase = authUseCase;
     }
-    async login(req, res) {
+    async login(req, res, next) {
         try {
             const { email, password } = req.body;
             if (!email || !password) {
@@ -17,18 +16,16 @@ class AuthController {
             res.status(200).json((0, utils_1.formatResponse)(true, result, undefined, undefined, req.context.requestId));
         }
         catch (error) {
-            logger_1.logger.error({ requestId: req.context.requestId, error: error.message }, 'Login failed');
-            throw error;
+            next(error);
         }
     }
-    async getMe(req, res) {
+    async getMe(req, res, next) {
         try {
             const result = await this.authUseCase.getMe(req.context);
             res.status(200).json((0, utils_1.formatResponse)(true, result, undefined, undefined, req.context.requestId));
         }
         catch (error) {
-            logger_1.logger.error({ requestId: req.context.requestId, error: error.message }, 'Get me failed');
-            throw error;
+            next(error);
         }
     }
 }

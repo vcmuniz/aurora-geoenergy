@@ -6,7 +6,7 @@ import { formatResponse } from '@core/utils';
 export class AuthController {
   constructor(private authUseCase: AuthUseCase) {}
 
-  async login(req: Request, res: Response) {
+  async login(req: Request, res: Response, next: Function) {
     try {
       const { email, password } = req.body;
 
@@ -18,19 +18,17 @@ export class AuthController {
 
       const result = await this.authUseCase.login(email, password, req.context);
       res.status(200).json(formatResponse(true, result, undefined, undefined, req.context.requestId));
-    } catch (error: any) {
-      logger.error({ requestId: req.context.requestId, error: error.message }, 'Login failed');
-      throw error;
+    } catch (error) {
+      next(error);
     }
   }
 
-  async getMe(req: Request, res: Response) {
+  async getMe(req: Request, res: Response, next: Function) {
     try {
       const result = await this.authUseCase.getMe(req.context);
       res.status(200).json(formatResponse(true, result, undefined, undefined, req.context.requestId));
-    } catch (error: any) {
-      logger.error({ requestId: req.context.requestId, error: error.message }, 'Get me failed');
-      throw error;
+    } catch (error) {
+      next(error);
     }
   }
 }
