@@ -11,9 +11,13 @@ class AuthUseCase {
         const response = await this.backendClient.post('/auth/login', { email, password }, context.requestId);
         return response.data;
     }
-    async getMe(context) {
+    async getMe(context, authHeader) {
         logger_1.logger.info({ requestId: context.requestId, userId: context.user?.id }, 'Executing get me use case');
-        const response = await this.backendClient.get('/auth/me', context.requestId);
+        const headers = {};
+        if (authHeader) {
+            headers.Authorization = authHeader;
+        }
+        const response = await this.backendClient.get('/auth/me', context.requestId, headers);
         return response.data;
     }
 }

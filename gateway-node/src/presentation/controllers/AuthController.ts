@@ -25,7 +25,8 @@ export class AuthController {
 
   async getMe(req: Request, res: Response, next: Function) {
     try {
-      const result = await this.authUseCase.getMe(req.context);
+      const authHeader = req.headers.authorization;
+      const result = await this.authUseCase.getMe(req.context, authHeader);
       res.status(200).json(formatResponse(true, result, undefined, undefined, req.context.requestId));
     } catch (error) {
       next(error);

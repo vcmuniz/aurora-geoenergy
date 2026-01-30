@@ -15,13 +15,17 @@ export class AuthUseCase {
     return response.data;
   }
 
-  async getMe(context: IRequestContext): Promise<any> {
+  async getMe(context: IRequestContext, authHeader?: string): Promise<any> {
     logger.info(
       { requestId: context.requestId, userId: context.user?.id },
       'Executing get me use case'
     );
 
-    const response = await this.backendClient.get('/auth/me', context.requestId);
+    const headers: Record<string, string> = {};
+    if (authHeader) {
+      headers.Authorization = authHeader;
+    }
+    const response = await this.backendClient.get('/auth/me', context.requestId, headers);
     return response.data;
   }
 }

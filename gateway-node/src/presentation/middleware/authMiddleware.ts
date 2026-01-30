@@ -5,7 +5,7 @@ import { UnauthorizedException } from '@domain/exceptions';
 import { addUserToContext } from '@core/utils';
 import { logger } from '@core/logger';
 
-const PUBLIC_ROUTES = ['/health', '/api/auth/login'];
+const PUBLIC_ROUTES = ['/health', '/api/auth/login', '/api/auth/me'];
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
   if (PUBLIC_ROUTES.includes(req.path)) {

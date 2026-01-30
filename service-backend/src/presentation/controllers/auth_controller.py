@@ -66,12 +66,13 @@ async def get_current_user(
     # Extrai email do token JWT
     token_payload = extract_user_from_token(authorization)
 
-    # Busca role no banco
+    # Busca role e id no banco
     user_repo = UserRepository(session)
-    role = user_repo.get_role_by_email(token_payload.email)
+    user = user_repo.get_by_email(token_payload.email)
 
     return {
+        "id": user.id,
         "email": token_payload.email,
         "name": token_payload.name,
-        "role": role
+        "role": user.role.value if user else None
     }

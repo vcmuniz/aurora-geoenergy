@@ -21,7 +21,8 @@ class AuthController {
     }
     async getMe(req, res, next) {
         try {
-            const result = await this.authUseCase.getMe(req.context);
+            const authHeader = req.headers.authorization;
+            const result = await this.authUseCase.getMe(req.context, authHeader);
             res.status(200).json((0, utils_1.formatResponse)(true, result, undefined, undefined, req.context.requestId));
         }
         catch (error) {

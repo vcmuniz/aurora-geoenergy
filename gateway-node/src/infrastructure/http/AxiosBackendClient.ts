@@ -14,8 +14,8 @@ export class AxiosBackendClient implements IBackendClient {
     });
   }
 
-  async get(path: string, requestId?: string): Promise<IBackendResponse> {
-    return this.request('GET', path, undefined, requestId);
+  async get(path: string, requestId?: string, headers?: Record<string, string>): Promise<IBackendResponse> {
+    return this.request('GET', path, undefined, requestId, headers);
   }
 
   async post(path: string, data: any, requestId?: string): Promise<IBackendResponse> {
@@ -34,7 +34,8 @@ export class AxiosBackendClient implements IBackendClient {
     method: string,
     path: string,
     data?: any,
-    requestId?: string
+    requestId?: string,
+    customHeaders?: Record<string, string>
   ): Promise<IBackendResponse> {
     try {
       const response = await this.client({
@@ -44,6 +45,7 @@ export class AxiosBackendClient implements IBackendClient {
         headers: {
           'Content-Type': 'application/json',
           ...(requestId && { 'X-Request-ID': requestId }),
+          ...customHeaders,
         },
       });
 

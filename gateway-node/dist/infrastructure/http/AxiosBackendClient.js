@@ -15,8 +15,8 @@ class AxiosBackendClient {
             validateStatus: () => true,
         });
     }
-    async get(path, requestId) {
-        return this.request('GET', path, undefined, requestId);
+    async get(path, requestId, headers) {
+        return this.request('GET', path, undefined, requestId, headers);
     }
     async post(path, data, requestId) {
         return this.request('POST', path, data, requestId);
@@ -27,7 +27,7 @@ class AxiosBackendClient {
     async delete(path, requestId) {
         return this.request('DELETE', path, undefined, requestId);
     }
-    async request(method, path, data, requestId) {
+    async request(method, path, data, requestId, customHeaders) {
         try {
             const response = await this.client({
                 method,
@@ -36,6 +36,7 @@ class AxiosBackendClient {
                 headers: {
                     'Content-Type': 'application/json',
                     ...(requestId && { 'X-Request-ID': requestId }),
+                    ...customHeaders,
                 },
             });
             // Se backend retornou erro, lança exceção
