@@ -4,10 +4,12 @@ Sistema centralizado de gerenciamento de releases com aprovações, auditoria e 
 
 ## Stack
 - **Backend**: Python FastAPI
+- **API Gateway**: Node.js Express + TypeScript
 - **Database**: PostgreSQL 15
 - **ORM**: SQLAlchemy
 - **Migrations**: Alembic
 - **Container**: Docker & Docker Compose
+- **Testing**: pytest (Backend)
 
 ## Requisitos
 - Docker & Docker Compose
@@ -21,28 +23,33 @@ git clone <repo>
 cd aurora-geoenergy
 
 # Copiar .env.example para .env
-cp backend-python/.env.example backend-python/.env
+cp .env.example .env
 ```
 
 ### 2. Rodar com Docker (Recomendado)
 ```bash
-# Subir containers (PostgreSQL + Backend)
+# Subir containers (PostgreSQL + Backend + Gateway)
 docker-compose up -d
 
 # Migrations rodam automaticamente!
-# A aplicação estará disponível em http://localhost:8000
+# Backend disponível em http://localhost:8000
+# API Gateway disponível em http://localhost:3000
+# Swagger disponível em http://localhost:3000/docs
 ```
 
 ### 3. Verificar status
 ```bash
 # Ver logs
-docker-compose logs -f backend
+docker-compose logs -f service-backend
 
 # Ver containers rodando
 docker-compose ps
 
 # Acessar health check
 curl http://localhost:8000/health
+
+# Acessar Swagger Gateway
+curl http://localhost:3000/docs
 ```
 
 ## Desenvolvimento Local
@@ -96,22 +103,85 @@ docker-compose exec backend alembic revision -m "descrição da mudança"
 # Rodar: docker-compose exec backend alembic upgrade head
 ```
 
+## Testes
+
+### Testes de Integração - Backend Python
+
+#### Rodar todos os testes
+```bash
+cd service-backend
+python3 -m pytest tests/ -v
+```
+
+#### Rodar apenas testes de autenticação
+```bash
+python3 -m pytest tests/integration/test_auth.py -v
+```
+
+#### Rodar um teste específico
+```bash
+python3 -m pytest tests/integration/test_auth.py::test_login_success -v
+```
+
+#### Com relatório de cobertura
+```bash
+python3 -m pytest tests/ -v --cov=src --cov-report=term-missing
+```
+
+**Opções úteis:**
+- `-v` → verbose (mostra cada teste)
+- `-s` → mostra prints/logs durante os testes
+- `--tb=short` → mostra menos informações de erro
+- `-k "login"` → roda só testes com "login" no nome
+
+**Testes disponíveis:**
+- `test_login_success` - Login com credenciais válidas
+- `test_login_invalid_email` - Email não encontrado (404)
+- `test_login_invalid_password` - Senha incorreta (401)
+- `test_get_me_with_token` - /auth/me com token válido
+- `test_get_me_without_token` - /auth/me sem token (401)
+
+
 ## Estrutura do Projeto
 ```
 aurora-geoenergy/
-├── backend-python/
+├── service-backend/           # Backend Python FastAPI
 │   ├── src/
-│   │   ├── domain/          # Entidades de domínio
-│   │   ├── infrastructure/  # ORM e database
-│   │   └── ...
-│   ├── migrations/          # Alembic migrations
-│   ├── main.py             # Entrada da aplicação
-│   ├── requirements.txt     # Dependências Python
-│   ├── Dockerfile          # Build da imagem
-│   ├── entrypoint.sh       # Script de entrada
-│   └── .env.example        # Template de variáveis
-├── docker-compose.yml      # Orquestração de containers
-└── README.md               # Este arquivo
+│   │   ├── domain/            # Entidades de domínio
+│   │   ├── infrastructure/    # ORM e database
+│   │   ├── application/       # Serviços e DTOs
+│   │   ├── presentation/      # Controllers e middleware
+│   │   └── core/              # Config, auth, logger
+│   ├── tests/
+│   │   ├── integration/       # Testes de integração
+│   │   ├── conftest.py        # Fixtures pytest
+│   │   └── helpers.py         # Utilitários para testes
+│   ├── migrations/            # Alembic migrations
+│   ├── main.py                # Entrada da aplicação
+│   ├── requirements.txt        # Dependências Python
+│   ├── pytest.ini             # Config pytest
+│   ├── Dockerfile             # Build da imagem
+│   ├── entrypoint.sh          # Script de entrada
+│   ├── seed.py                # Seeder com dados de teste
+│   └── .env.example           # Template de variáveis
+├── gateway-node/              # API Gateway Node.js TypeScript
+│   ├── src/
+│   │   ├── domain/            # Entidades de domínio
+│   │   ├── application/       # Use cases e DTOs
+│   │   ├── infrastructure/    # HTTP client, config
+│   │   ├── presentation/      # Controllers, middleware, routes
+│   │   └── core/              # Config, logger, utils
+│   ├── dist/                  # Código compilado TypeScript
+│   ├── main.ts                # Entrada da aplicação
+│   ├── package.json           # Dependências Node.js
+│   ├── tsconfig.json          # Config TypeScript
+│   ├── nodemon.json           # Config hot reload
+│   ├── Dockerfile             # Build da imagem
+│   └── .env.example           # Template de variáveis
+├── frontend-angular/          # Frontend Angular (em desenvolvimento)
+├── docker-compose.yml         # Orquestração de containers
+├── .env.example               # Template consolidado de variáveis
+└── README.md                  # Este arquivo
 ```
 
 ## Desenvolvimento
