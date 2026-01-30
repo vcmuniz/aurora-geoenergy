@@ -1,0 +1,39 @@
+<div class="dashboard-container">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <h1>Aurora Geoenergy</h1>
+    </div>
+    <div class="navbar-user" *ngIf="user">
+      <span class="user-info">
+        <strong>{{ user.name }}</strong>
+        <small>{{ user.email }}</small>
+      </span>
+      <button class="logout-btn" (click)="onLogout()">Sair</button>
+    </div>
+  </nav>
+
+  <div class="content">
+    <div class="dashboard-grid">
+      <div class="card">
+        <h2>Bem-vindo!</h2>
+        <p>Você está logado no sistema de gerenciamento de releases.</p>
+        <p *ngIf="user">Role: <strong>{{ user.role }}</strong></p>
+      </div>
+
+      <div class="card">
+        <h3>Releases</h3>
+        <p>Gerencie releases e versões do aplicativo</p>
+      </div>
+
+      <div class="card">
+        <h3>Aprovações</h3>
+        <p>Revise e aprove releases em progresso</p>
+      </div>
+
+      <div class="card">
+        <h3>Auditoria</h3>
+        <p>Visualize logs de todas as ações do sistema</p>
+      </div>
+    </div>
+  </div>
+</div>
