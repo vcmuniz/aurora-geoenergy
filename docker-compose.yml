@@ -20,12 +20,36 @@ services:
     networks:
       - aurora-geoenergy-network
 
-  # Python FastAPI Backend
-  backend:
+  # Node.js API Gateway
+  gateway:
     build:
-      context: ./backend-python
+      context: ./gateway-node
       dockerfile: Dockerfile
-    container_name: aurora-geoenergy-backend
+    container_name: aurora-geoenergy-gateway
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      BACKEND_URL: http://service-backend:8000
+      JWT_SECRET: ${JWT_SECRET:-seu-secret-super-seguro-aqui}
+      LOG_LEVEL: info
+    ports:
+      - "3000:3000"
+    depends_on:
+      - service-backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aurora-geoenergy-network
+
+  # Python FastAPI Backend
+  service-backend:
+    build:
+      context: ./service-backend
+      dockerfile: Dockerfile
+    container_name: aurora-geoenergy-service-backend
     environment:
       DATABASE_URL: postgresql://aurora:aurora_password@postgres:5432/aurora_db
       DATABASE_POOL_SIZE: 10
@@ -33,9 +57,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend-python/src:/app/src
-      - ./backend-python/main.py:/app/main.py
-      - ./backend-python/migrations:/app/migrations
+      - ./service-backend/src:/app/src
+      - ./service-backend/main.py:/app/main.py
+      - ./service-backend/migrations:/app/migrations
     depends_on:
       postgres:
         condition: service_healthy
