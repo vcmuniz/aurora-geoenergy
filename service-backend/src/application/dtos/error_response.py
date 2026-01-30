@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 from typing import Optional
 from datetime import datetime
 
@@ -15,6 +15,10 @@ class ErrorResponse(BaseModel):
         if 'timestamp' not in data:
             data['timestamp'] = datetime.utcnow()
         super().__init__(**data)
+    
+    @field_serializer('timestamp')
+    def serialize_timestamp(self, value: datetime):
+        return value.isoformat() if value else None
     
     class Config:
         json_schema_extra = {
