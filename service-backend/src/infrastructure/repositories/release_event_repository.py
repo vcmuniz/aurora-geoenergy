@@ -8,6 +8,15 @@ class ReleaseEventRepository:
         self.session = session
 
     def create(self, release_id: UUID, event_type: str, status: str = None, actor_email: str = None, notes: str = None) -> ReleaseEventORM:
+        # Se status não foi fornecido, usar um valor padrão baseado no event_type
+        if status is None:
+            status_map = {
+                'CREATED': 'COMPLETED',
+                'UPDATED': 'COMPLETED',
+                'PROMOTED': 'COMPLETED',
+            }
+            status = status_map.get(event_type, 'COMPLETED')
+        
         event = ReleaseEventORM(
             release_id=release_id,
             event_type=event_type,

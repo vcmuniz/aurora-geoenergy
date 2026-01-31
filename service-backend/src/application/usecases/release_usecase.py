@@ -48,7 +48,6 @@ class ReleaseUseCase:
         self.event_repo.create(
             release_id=release.id,
             event_type='CREATED',
-            status='PENDING',
             notes=f"Release v{request.version} criado para {request.environment}"
         )
         
@@ -195,7 +194,6 @@ class ReleaseUseCase:
         self.event_repo.create(
             release_id=release.id,
             event_type='UPDATED',
-            status='PENDING',
             notes=f"Release v{request.version} atualizado para {request.environment} com score {evidence_score}"
         )
         
@@ -262,7 +260,6 @@ class ReleaseUseCase:
         self.event_repo.create(
             release_id=release_id,
             event_type='PROMOTED',
-            status='PENDING',
             notes=f"Release v{release.version} promovido para {target_env}"
         )
         
