@@ -1,7 +1,7 @@
 <div class="applications-container">
   <h1>Aplicações</h1>
 
-  <button (click)="openForm()" class="btn-new">+ Nova Aplicação</button>
+  <button (click)="openForm()" [disabled]="!canCreate" class="btn-new">+ Nova Aplicação</button>
 
   <div *ngIf="loading" class="loading">Carregando...</div>
 
@@ -22,8 +22,8 @@
         <td><a *ngIf="app.repoUrl" [href]="app.repoUrl" target="_blank">{{ app.repoUrl }}</a></td>
         <td>{{ app.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
         <td>
-          <button (click)="openForm(app)" class="btn-edit">Editar</button>
-          <button (click)="delete(app.id)" class="btn-delete">Deletar</button>
+          <button (click)="openForm(app)" [disabled]="!canEdit" class="btn-edit">Editar</button>
+          <button (click)="delete(app.id)" [disabled]="!canDelete" class="btn-delete">Deletar</button>
         </td>
       </tr>
     </tbody>

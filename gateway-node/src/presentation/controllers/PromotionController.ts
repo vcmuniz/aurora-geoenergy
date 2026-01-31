@@ -8,16 +8,16 @@ export class PromotionController {
 
   async validateProductionPromotion(req: Request, res: Response) {
     try {
-      const { policy_id } = req.body;
+      const { releaseId } = req.body;
 
-      if (!policy_id) {
+      if (!releaseId) {
         return res.status(400).json(
-          formatResponse(false, undefined, 'policy_id is required', 'VALIDATION_ERROR', req.context.requestId)
+          formatResponse(false, undefined, 'releaseId is required', 'VALIDATION_ERROR', req.context.requestId)
         );
       }
 
       const result = await this.promotionUseCase.validateProductionPromotion(
-        policy_id,
+        releaseId,
         req.context
       );
 

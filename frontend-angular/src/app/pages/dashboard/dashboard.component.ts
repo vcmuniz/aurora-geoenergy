@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
+import { PermissionsService } from '@core/services/permissions.service';
+import { RoleBadgeComponent } from '@shared/components/role-badge/role-badge.component';
 import { User } from '@shared/models/auth.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RoleBadgeComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -16,14 +18,20 @@ export class DashboardComponent implements OnInit {
   loading = true;
   error = '';
 
+  // Permissions summary
+  userRole = '';
+  permissionsSummary: any = {};
+
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    public permissions: PermissionsService
   ) {}
 
   ngOnInit(): void {
     this.authService.user$.subscribe(user => {
       this.user = user;
+      this.updatePermissionsSummary();
     });
 
     // Busca dados completos do usuário
@@ -31,6 +39,7 @@ export class DashboardComponent implements OnInit {
       next: (response) => {
         if (response.data) {
           this.user = response.data;
+          this.updatePermissionsSummary();
         }
         this.loading = false;
       },
@@ -40,6 +49,16 @@ export class DashboardComponent implements OnInit {
         console.error(err);
       }
     });
+  }
+
+  updatePermissionsSummary(): void {
+    this.userRole = this.permissions.getUserRole();
+    this.permissionsSummary = {
+      applications: this.permissions.getApplicationPermissions(),
+      releases: this.permissions.getReleasePermissions(),
+      approvals: this.permissions.getApprovalPermissions(),
+      audit: this.permissions.getAuditPermissions()
+    };
   }
 
   onLogout(): void {

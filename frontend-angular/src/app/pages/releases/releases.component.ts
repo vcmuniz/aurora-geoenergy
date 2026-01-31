@@ -5,6 +5,7 @@ import { ReleaseService } from '@core/services/release.service';
 import { ApplicationService } from '@core/services/application.service';
 import { ApprovalService } from '@core/services/approval.service';
 import { AuthService } from '@core/services/auth.service';
+import { PermissionsService } from '@core/services/permissions.service';
 import { ReleaseTimelineService } from '@core/services/release-timeline.service';
 import { TimelineComponent } from '@shared/components/timeline/timeline.component';
 import { Release, ReleaseRequest } from '@shared/models/release.model';
@@ -36,6 +37,12 @@ export class ReleasesComponent implements OnInit {
   currentUser: string = ''; // TODO: get from auth
   promoteValidation: any = null;
 
+  // Permissions
+  canCreate = false;
+  canEdit = false;
+  canDelete = false;
+  canPromote = false;
+
   formData: ReleaseRequest = {
     applicationId: '',
     version: '',
@@ -53,12 +60,22 @@ export class ReleasesComponent implements OnInit {
     private appService: ApplicationService,
     private approvalService: ApprovalService,
     private timelineService: ReleaseTimelineService,
-    private authService: AuthService
+    private authService: AuthService,
+    public permissions: PermissionsService
   ) {
-    this.currentUser = this.authService.getCurrentUserEmail();}
+    this.currentUser = this.authService.getCurrentUserEmail();
+  }
 
   ngOnInit(): void {
+    this.initializePermissions();
     this.loadApplications();
+  }
+
+  initializePermissions(): void {
+    this.canCreate = this.permissions.canCreateRelease();
+    this.canEdit = this.permissions.canEditRelease();
+    this.canDelete = this.permissions.canDeleteRelease();
+    this.canPromote = this.permissions.canPromoteRelease();
   }
 
   loadApplications(): void {
@@ -115,6 +132,10 @@ export class ReleasesComponent implements OnInit {
   }
 
   openForm(): void {
+    if (!this.canCreate) {
+      alert('Você não tem permissão para criar releases');
+      return;
+    }
     this.isEditMode = false;
     this.editingReleaseId = null;
     this.formData = {
@@ -128,6 +149,10 @@ export class ReleasesComponent implements OnInit {
   }
 
   editRelease(release: Release): void {
+    if (!this.canEdit) {
+      alert('Você não tem permissão para editar releases');
+      return;
+    }
     this.isEditMode = true;
     this.editingReleaseId = release.id;
     this.formData = {
@@ -178,6 +203,10 @@ export class ReleasesComponent implements OnInit {
   }
 
   delete(id: string): void {
+    if (!this.canDelete) {
+      alert('Você não tem permissão para deletar releases');
+      return;
+    }
     if (confirm('Tem certeza?')) {
       this.releaseService.delete(id).subscribe({
         next: () => this.loadReleases(),
@@ -232,6 +261,10 @@ export class ReleasesComponent implements OnInit {
   }
 
   openPromoteModal(releaseId: string, env: string): void {
+    if (!this.canPromote) {
+      alert('Você não tem permissão para promover releases');
+      return;
+    }
     this.promoteReleaseId = releaseId;
     this.currentEnv = env;
     this.showPromoteModal = true;

@@ -10,8 +10,8 @@ export function createPromotionRoutes(backendClient: IBackendClient): Router {
    * @swagger
    * /internal/promotions/validate-production:
    *   post:
-   *     summary: Validar promoção para PROD
-   *     description: Valida se um release pode ser promovido para PROD conforme policy
+   *     summary: Validar promocao para PROD
+   *     description: Valida se um release pode ser promovido para PROD conforme policy (score, approvals, evidence, freeze)
    *     tags:
    *       - Promotions
    *     security:
@@ -22,29 +22,43 @@ export function createPromotionRoutes(backendClient: IBackendClient): Router {
    *         application/json:
    *           schema:
    *             type: object
+   *             required:
+   *               - releaseId
    *             properties:
    *               releaseId:
    *                 type: string
-   *               fromEnv:
-   *                 type: string
-   *                 enum: [PRE_PROD]
-   *               toEnv:
-   *                 type: string
-   *                 enum: [PROD]
+   *                 description: ID do release a validar
    *     responses:
    *       200:
-   *         description: Validação realizada
+   *         description: Validacao realizada
    *         content:
    *           application/json:
    *             schema:
    *               type: object
    *               properties:
-   *                 allowed:
+   *                 success:
    *                   type: boolean
-   *                 reason:
-   *                   type: string
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     allowed:
+   *                       type: boolean
+   *                     score:
+   *                       type: number
+   *                     minScore:
+   *                       type: number
+   *                     approvalCount:
+   *                       type: number
+   *                     minApprovals:
+   *                       type: number
+   *                     hasEvidenceUrl:
+   *                       type: boolean
+   *                     isFrozen:
+   *                       type: boolean
+   *                     reason:
+   *                       type: string
    *       400:
-   *         description: Dados inválidos
+   *         description: releaseId nao fornecido
    */
   router.post('/internal/promotions/validate-production', (req: Request, res: Response) =>
     promotionController.validateProductionPromotion(req, res).catch((err) => {

@@ -4,6 +4,7 @@ import cors from 'cors';
 import { getConfig } from '@core/config';
 import { logger } from '@core/logger';
 import { requestIdMiddleware } from '@presentation/middleware/requestIdMiddleware';
+import { metricsMiddleware } from '@presentation/middleware/metricsMiddleware';
 import { authMiddleware } from '@presentation/middleware/authMiddleware';
 import { rateLimitByIp, rateLimitByUser } from '@presentation/middleware/rateLimitMiddleware';
 import { errorHandlerMiddleware } from '@presentation/middleware/errorHandlerMiddleware';
@@ -31,6 +32,7 @@ try {
   app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
   app.use(requestIdMiddleware);
+  app.use(metricsMiddleware);
   app.use(rateLimitByIp);
 
   const backendClient = new AxiosBackendClient(config.backendUrl);

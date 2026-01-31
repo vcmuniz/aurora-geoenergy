@@ -4,6 +4,7 @@
       <h1>Aurora Geoenergy</h1>
     </div>
     <div class="navbar-user" *ngIf="user">
+      <app-role-badge></app-role-badge>
       <span class="user-info">
         <strong>{{ user.name }}</strong>
         <small>{{ user.email }}</small>
@@ -14,10 +15,70 @@
 
   <div class="content">
     <div class="dashboard-grid">
-      <div class="card">
+      <div class="card card-welcome">
         <h2>Bem-vindo!</h2>
         <p>Você está logado no sistema de gerenciamento de releases.</p>
-        <p *ngIf="user">Role: <strong>{{ user.role }}</strong></p>
+        <div class="role-info">
+          <strong>Role Atual:</strong> {{ user?.role || 'VIEWER' }}
+        </div>
+      </div>
+
+      <!-- Permissions Info Card -->
+      <div class="card card-permissions">
+        <h3>Suas Permissões</h3>
+        <div class="permissions-section">
+          <h4>📦 Aplicações</h4>
+          <ul>
+            <li [class.allowed]="permissionsSummary.applications?.create">
+              ✓ Criar aplicação
+            </li>
+            <li [class.allowed]="permissionsSummary.applications?.update">
+              ✓ Editar aplicação
+            </li>
+            <li [class.allowed]="permissionsSummary.applications?.delete">
+              ✓ Deletar aplicação
+            </li>
+          </ul>
+        </div>
+
+        <div class="permissions-section">
+          <h4>📤 Releases</h4>
+          <ul>
+            <li [class.allowed]="permissionsSummary.releases?.create">
+              ✓ Criar release
+            </li>
+            <li [class.allowed]="permissionsSummary.releases?.update">
+              ✓ Editar release
+            </li>
+            <li [class.allowed]="permissionsSummary.releases?.delete">
+              ✓ Deletar release
+            </li>
+            <li [class.allowed]="permissionsSummary.releases?.promote">
+              ✓ Promover release
+            </li>
+          </ul>
+        </div>
+
+        <div class="permissions-section">
+          <h4>✋ Aprovações</h4>
+          <ul>
+            <li [class.allowed]="permissionsSummary.approvals?.approve">
+              ✓ Aprovar release
+            </li>
+            <li [class.allowed]="permissionsSummary.approvals?.approve">
+              ✓ Rejeitar release
+            </li>
+          </ul>
+        </div>
+
+        <div class="permissions-section">
+          <h4>📋 Auditoria</h4>
+          <ul>
+            <li [class.allowed]="permissionsSummary.audit?.read">
+              ✓ Visualizar logs
+            </li>
+          </ul>
+        </div>
       </div>
 
       <div class="card">

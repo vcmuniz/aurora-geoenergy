@@ -9,6 +9,7 @@ const cors_1 = __importDefault(require("cors"));
 const config_1 = require("./core/config");
 const logger_1 = require("./core/logger");
 const requestIdMiddleware_1 = require("./presentation/middleware/requestIdMiddleware");
+const metricsMiddleware_1 = require("./presentation/middleware/metricsMiddleware");
 const authMiddleware_1 = require("./presentation/middleware/authMiddleware");
 const rateLimitMiddleware_1 = require("./presentation/middleware/rateLimitMiddleware");
 const errorHandlerMiddleware_1 = require("./presentation/middleware/errorHandlerMiddleware");
@@ -31,6 +32,7 @@ try {
     app.use(express_1.default.json({ limit: '10mb' }));
     app.use(express_1.default.urlencoded({ limit: '10mb', extended: true }));
     app.use(requestIdMiddleware_1.requestIdMiddleware);
+    app.use(metricsMiddleware_1.metricsMiddleware);
     app.use(rateLimitMiddleware_1.rateLimitByIp);
     const backendClient = new AxiosBackendClient_1.AxiosBackendClient(config.backendUrl);
     app.use((0, healthRoutes_1.createHealthRoutes)());

@@ -44,13 +44,15 @@
           <td>
             <button 
               *ngIf="selectedFilter === 'pendentes'"
-              (click)="openApprovalModal(approval, 'approve')" 
+              (click)="openApprovalModal(approval, 'approve')"
+              [disabled]="!canApprove"
               class="btn-approve">
               Aprovar
             </button>
             <button 
               *ngIf="selectedFilter === 'pendentes'"
-              (click)="openApprovalModal(approval, 'reject')" 
+              (click)="openApprovalModal(approval, 'reject')"
+              [disabled]="!canReject"
               class="btn-reject">
               Rejeitar
             </button>

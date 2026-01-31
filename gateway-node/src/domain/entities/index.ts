@@ -19,6 +19,10 @@ export interface IPromotionValidation {
   allowed: boolean;
   score: number;
   minScore: number;
+  approvalCount: number;
+  minApprovals: number;
+  hasEvidenceUrl: boolean;
+  isFrozen: boolean;
   reason?: string;
 }
 

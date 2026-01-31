@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApplicationService } from '@core/services/application.service';
+import { PermissionsService } from '@core/services/permissions.service';
 import { Application, ApplicationRequest } from '@shared/models/application.model';
 
 @Component({
@@ -28,10 +29,25 @@ export class ApplicationsComponent implements OnInit {
   limit = 10;
   total = 0;
 
-  constructor(private appService: ApplicationService) {}
+  // Permissions
+  canCreate = false;
+  canEdit = false;
+  canDelete = false;
+
+  constructor(
+    private appService: ApplicationService,
+    public permissions: PermissionsService
+  ) {}
 
   ngOnInit(): void {
+    this.initializePermissions();
     this.loadApplications();
+  }
+
+  initializePermissions(): void {
+    this.canCreate = this.permissions.canCreateApplication();
+    this.canEdit = this.permissions.canEditApplication();
+    this.canDelete = this.permissions.canDeleteApplication();
   }
 
   loadApplications(): void {
@@ -50,6 +66,10 @@ export class ApplicationsComponent implements OnInit {
   }
 
   openForm(app?: Application): void {
+    if (!this.canCreate && !this.canEdit) {
+      alert('Você não tem permissão para esta ação');
+      return;
+    }
     if (app) {
       this.editingId = app.id;
       this.formData = {
@@ -95,6 +115,10 @@ export class ApplicationsComponent implements OnInit {
   }
 
   delete(id: string): void {
+    if (!this.canDelete) {
+      alert('Você não tem permissão para deletar aplicações');
+      return;
+    }
     if (confirm('Tem certeza?')) {
       this.appService.delete(id).subscribe({
         next: () => this.loadApplications(),

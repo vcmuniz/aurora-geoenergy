@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ApprovalService } from '@core/services/approval.service';
 import { ReleaseService } from '@core/services/release.service';
 import { ApplicationService } from '@core/services/application.service';
+import { PermissionsService } from '@core/services/permissions.service';
 import { Release } from '@shared/models/release.model';
 import { Application } from '@shared/models/application.model';
 
@@ -54,14 +55,27 @@ export class ApprovalsComponent implements OnInit {
   limitRejected = 10;
   totalRejected = 0;
 
+  // Permissions
+  canApprove = false;
+  canReject = false;
+  canView = true;
+
   constructor(
     private approvalService: ApprovalService,
     private releaseService: ReleaseService,
-    private applicationService: ApplicationService
+    private applicationService: ApplicationService,
+    public permissions: PermissionsService
   ) {}
 
   ngOnInit(): void {
+    this.initializePermissions();
     this.loadData();
+  }
+
+  initializePermissions(): void {
+    this.canApprove = this.permissions.canApproveRelease();
+    this.canReject = this.permissions.canRejectRelease();
+    this.canView = this.permissions.canViewApprovals();
   }
 
   loadData(): void {
@@ -132,6 +146,14 @@ export class ApprovalsComponent implements OnInit {
   }
 
   openApprovalModal(approval: PendingApproval, mode: 'approve' | 'reject'): void {
+    if (mode === 'approve' && !this.canApprove) {
+      alert('Você não tem permissão para aprovar releases');
+      return;
+    }
+    if (mode === 'reject' && !this.canReject) {
+      alert('Você não tem permissão para rejeitar releases');
+      return;
+    }
     this.selectedReleaseId = approval.release.id;
     this.modalMode = mode;
     this.formData = { notes: '' };

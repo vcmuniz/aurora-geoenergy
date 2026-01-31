@@ -15,7 +15,7 @@
     </select>
   </div>
 
-  <button *ngIf="selectedAppId" (click)="openForm()" class="btn-new">+ Novo Release</button>
+  <button *ngIf="selectedAppId" (click)="openForm()" [disabled]="!canCreate" class="btn-new">+ Novo Release</button>
 
   <div *ngIf="loading" class="loading">Carregando...</div>
 
@@ -53,9 +53,9 @@
         <td>{{ release.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
         <td>
           <button (click)="loadTimeline(release.id)" class="btn-timeline">Timeline</button>
-          <button *ngIf="release.env !== 'PROD'" (click)="editRelease(release)" class="btn-edit">Editar</button>
-          <button *ngIf="release.env !== 'PROD'" (click)="openPromoteModal(release.id, release.env)" class="btn-promote">Promover</button>
-          <button *ngIf="release.env !== 'PROD'" (click)="delete(release.id)" class="btn-delete">Deletar</button>
+          <button *ngIf="release.env !== 'PROD'" (click)="editRelease(release)" [disabled]="!canEdit" class="btn-edit">Editar</button>
+          <button *ngIf="release.env !== 'PROD'" (click)="openPromoteModal(release.id, release.env)" [disabled]="!canPromote" class="btn-promote">Promover</button>
+          <button *ngIf="release.env !== 'PROD'" (click)="delete(release.id)" [disabled]="!canDelete" class="btn-delete">Deletar</button>
         </td>
       </tr>
     </tbody>

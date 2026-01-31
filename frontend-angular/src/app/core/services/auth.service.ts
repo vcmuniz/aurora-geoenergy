@@ -44,6 +44,10 @@ export class AuthService {
     return user?.email || '';
   }
 
+  getCurrentUser(): User | null {
+    return this.userSubject.getValue();
+  }
+
   getCurrentUser$(): Observable<User | null> {
     return this.user$;
   }
