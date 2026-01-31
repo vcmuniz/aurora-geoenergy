@@ -5,7 +5,7 @@ from src.application.usecases.application_usecase import ApplicationUseCase
 from src.application.dtos.application_dtos import ApplicationRequest, ApplicationResponse
 from src.application.dtos.api_response import ApiResponse
 
-router = APIRouter(prefix="/api/applications", tags=["Applications"])
+router = APIRouter(prefix="/applications", tags=["Applications"])
 
 
 @router.post("", response_model=dict)

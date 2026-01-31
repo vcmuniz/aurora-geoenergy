@@ -5,7 +5,7 @@ from src.application.usecases.approval_usecase import ApprovalUseCase
 from src.application.dtos.approval_dtos import ApprovalRequest, ApprovalResponse
 from src.application.dtos.api_response import ApiResponse
 
-router = APIRouter(prefix="/api/approvals", tags=["Approvals"])
+router = APIRouter(prefix="/approvals", tags=["Approvals"])
 
 
 @router.post("/{release_id}", response_model=dict)

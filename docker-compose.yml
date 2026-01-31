@@ -30,7 +30,7 @@ services:
       NODE_ENV: development
       PORT: 3000
       BACKEND_URL: http://service-backend:8000
-      JWT_SECRET: ${JWT_SECRET:-seu-secret-super-seguro-aqui}
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_here_change_in_prod}
       LOG_LEVEL: info
     ports:
       - "3000:3000"
@@ -57,6 +57,7 @@ services:
       DATABASE_URL: postgresql://aurora:aurora_password@postgres:5432/aurora_db
       DATABASE_POOL_SIZE: 10
       ENVIRONMENT: development
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_here_change_in_prod}
     ports:
       - "8000:8000"
     volumes:

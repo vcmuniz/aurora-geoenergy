@@ -5,7 +5,7 @@ from src.application.usecases.release_usecase import ReleaseUseCase
 from src.application.dtos.release_dtos import ReleaseRequest, ReleaseResponse
 from src.application.dtos.api_response import ApiResponse
 
-router = APIRouter(prefix="/api/releases", tags=["Releases"])
+router = APIRouter(prefix="/releases", tags=["Releases"])
 
 
 @router.post("", response_model=dict)
