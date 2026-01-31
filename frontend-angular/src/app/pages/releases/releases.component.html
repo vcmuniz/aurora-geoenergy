@@ -1,0 +1,82 @@
+<div class="releases-container">
+  <h1>Releases</h1>
+
+  <div class="filter">
+    <label>Selecione Aplicação:</label>
+    <select [(ngModel)]="selectedAppId" (change)="onAppChange()" class="select">
+      <option value="">-- Escolher --</option>
+      <option *ngFor="let app of applications" [value]="app.id">{{ app.name }}</option>
+    </select>
+    <button *ngIf="selectedAppId" (click)="openForm()" class="btn-new">+ Novo Release</button>
+  </div>
+
+  <div *ngIf="loading" class="loading">Carregando...</div>
+
+  <table *ngIf="!loading && releases.length > 0" class="table">
+    <thead>
+      <tr>
+        <th>Versão</th>
+        <th>Ambiente</th>
+        <th>Status</th>
+        <th>Score</th>
+        <th>Criada em</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let release of releases">
+        <td>{{ release.version }}</td>
+        <td>{{ release.env }}</td>
+        <td><span [class]="'status-' + release.status">{{ release.status }}</span></td>
+        <td>{{ release.evidenceScore }}%</td>
+        <td>{{ release.createdAt | date: 'short' }}</td>
+        <td>
+          <button (click)="delete(release.id)" class="btn-delete">Deletar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!loading && releases.length === 0 && selectedAppId" class="empty">
+    Nenhum release encontrado
+  </div>
+
+  <div *ngIf="selectedAppId" class="pagination">
+    <button (click)="previousPage()" [disabled]="skip === 0">← Anterior</button>
+    <span>Página {{ (skip / limit) + 1 }}</span>
+    <button (click)="nextPage()">Próxima →</button>
+  </div>
+
+  <!-- Modal Form -->
+  <div *ngIf="showForm" class="modal">
+    <div class="modal-content">
+      <h2>Novo Release</h2>
+      <form (ngSubmit)="save()">
+        <div class="form-group">
+          <label>Versão *</label>
+          <input [(ngModel)]="formData.version" name="version" type="text" required />
+        </div>
+        <div class="form-group">
+          <label>Ambiente *</label>
+          <select [(ngModel)]="formData.env" name="env" required>
+            <option value="DEV">DEV</option>
+            <option value="PRE_PROD">PRE_PROD</option>
+            <option value="PROD">PROD</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Evidence URL</label>
+          <input [(ngModel)]="formData.evidenceUrl" name="evidenceUrl" type="text" />
+        </div>
+        <div class="form-group">
+          <label>Evidence Score (0-100)</label>
+          <input [(ngModel)]="formData.evidenceScore" name="evidenceScore" type="number" min="0" max="100" />
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-save">Criar</button>
+          <button type="button" (click)="closeForm()" class="btn-cancel">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

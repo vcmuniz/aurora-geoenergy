@@ -1,10 +1,10 @@
-export type ApprovalOutcome = 'APPROVED' | 'REJECTED';
+export type ApprovalOutcome = 'APPROVED' | 'REJECTED' | 'PENDENTE';
 
 export interface Approval {
   id: string;
   releaseId: string;
   approverEmail: string;
-  outcome: ApprovalOutcome;
+  outcome?: ApprovalOutcome;
   notes?: string;
   createdAt: Date;
 }
@@ -16,3 +16,4 @@ export interface ApprovalRequest {
 }
 
 export interface ApprovalResponse extends Approval {}
+

@@ -1,0 +1,76 @@
+<div class="approvals-container">
+  <h1>Aprovações Pendentes</h1>
+
+  <div *ngIf="loading" class="loading">Carregando...</div>
+
+  <div *ngIf="!loading && approvals.length > 0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Release ID</th>
+          <th>Resultado</th>
+          <th>Criada em</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let approval of approvals">
+          <tr>
+            <td>{{ approval.releaseId }}</td>
+            <td><span [class]="'status-' + approval.outcome">{{ approval.outcome || 'PENDENTE' }}</span></td>
+            <td>{{ approval.createdAt | date: 'medium' }}</td>
+            <td>
+              <button (click)="openForm(approval)" class="btn-approve">Processar</button>
+              <button (click)="toggleExpand(approval.id)" class="btn-expand">Detalhes</button>
+            </td>
+          </tr>
+          <tr *ngIf="expandedApproval === approval.id" class="details-row">
+            <td colspan="4">
+              <div class="details">
+                <p><strong>Notas anteriores:</strong> {{ approval.notes || 'N/A' }}</p>
+                <p><strong>ID:</strong> {{ approval.id }}</p>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button (click)="previousPage()" [disabled]="skip === 0">← Anterior</button>
+      <span>Página {{ (skip / limit) + 1 }}</span>
+      <button (click)="nextPage()">Próxima →</button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && approvals.length === 0" class="empty">
+    Nenhuma aprovação pendente
+  </div>
+
+  <!-- Modal Form -->
+  <div *ngIf="showForm && selectedApproval" class="modal">
+    <div class="modal-content">
+      <h2>Processar Aprovação</h2>
+      <div class="release-info">
+        <p><strong>Release:</strong> {{ selectedApproval.releaseId }}</p>
+      </div>
+      <form (ngSubmit)="save()">
+        <div class="form-group">
+          <label>Resultado *</label>
+          <select [(ngModel)]="formData.outcome" name="outcome" required>
+            <option [value]="'APPROVED'">Aprovado</option>
+            <option [value]="'REJECTED'">Rejeitado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notas</label>
+          <textarea [(ngModel)]="formData.notes" name="notes" [rows]="4"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-save">Enviar</button>
+          <button type="button" (click)="closeForm()" class="btn-cancel">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -6,6 +6,8 @@ export interface AuditLog {
   entityId: string;
   payload: Record<string, any>;
   timestamp: Date;
+  createdAt: Date;
+  requestId: string;
 }
 
 export interface AuditLogFilters {

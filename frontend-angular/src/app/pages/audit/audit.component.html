@@ -1,0 +1,67 @@
+<div class="audit-container">
+  <h1>Audit Log</h1>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Ator:</label>
+      <input [(ngModel)]="filterActor" (change)="onFilterChange()" type="text" placeholder="Email ou nome" />
+    </div>
+    <div class="filter-group">
+      <label>Ação:</label>
+      <input [(ngModel)]="filterAction" (change)="onFilterChange()" type="text" placeholder="CREATE, UPDATE, DELETE..." />
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">Carregando...</div>
+
+  <div *ngIf="!loading && getFilteredLogs().length > 0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Ator</th>
+          <th>Ação</th>
+          <th>Entidade</th>
+          <th>ID</th>
+          <th>Request ID</th>
+          <th>Detalhes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let log of getFilteredLogs()">
+          <tr>
+            <td>{{ log.createdAt | date: 'medium' }}</td>
+            <td>{{ log.actor }}</td>
+            <td><span [class]="'action-' + log.action">{{ log.action }}</span></td>
+            <td>{{ log.entity }}</td>
+            <td>{{ log.entityId }}</td>
+            <td class="request-id">{{ log.requestId }}</td>
+            <td>
+              <button (click)="toggleExpand(log.id)" class="btn-expand">
+                {{ expandedLog === log.id ? '✕' : '...' }}
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="expandedLog === log.id" class="details-row">
+            <td colspan="7">
+              <div class="details">
+                <p><strong>Payload:</strong></p>
+                <pre>{{ log.payload | json }}</pre>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button (click)="previousPage()" [disabled]="skip === 0">← Anterior</button>
+      <span>Página {{ (skip / limit) + 1 }}</span>
+      <button (click)="nextPage()">Próxima →</button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && getFilteredLogs().length === 0" class="empty">
+    Nenhum log encontrado
+  </div>
+</div>

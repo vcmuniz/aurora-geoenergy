@@ -10,6 +10,7 @@ export class AuthService {
   private apiUrl = 'http://localhost:3000/api';
   private userSubject = new BehaviorSubject<User | null>(null);
   public user$ = this.userSubject.asObservable();
+  public isLoggedIn = this.user$.pipe(tap(() => this.isAuthenticated()));
 
   constructor(private http: HttpClient) {
     this.loadStoredUser();
@@ -36,6 +37,10 @@ export class AuthService {
           }
         })
       );
+  }
+
+  getCurrentUser(): User | null {
+    return this.userSubject.getValue();
   }
 
   logout(): void {

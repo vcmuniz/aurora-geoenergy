@@ -1,0 +1,66 @@
+<div class="applications-container">
+  <h1>Aplicações</h1>
+
+  <button (click)="openForm()" class="btn-new">+ Nova Aplicação</button>
+
+  <div *ngIf="loading" class="loading">Carregando...</div>
+
+  <table *ngIf="!loading && applications.length > 0" class="table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Equipe</th>
+        <th>Repositório</th>
+        <th>Criada em</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let app of applications">
+        <td>{{ app.name }}</td>
+        <td>{{ app.ownerTeam }}</td>
+        <td><a *ngIf="app.repoUrl" [href]="app.repoUrl" target="_blank">{{ app.repoUrl }}</a></td>
+        <td>{{ app.createdAt | date: 'short' }}</td>
+        <td>
+          <button (click)="openForm(app)" class="btn-edit">Editar</button>
+          <button (click)="delete(app.id)" class="btn-delete">Deletar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!loading && applications.length === 0" class="empty">
+    Nenhuma aplicação encontrada
+  </div>
+
+  <div class="pagination">
+    <button (click)="previousPage()" [disabled]="skip === 0">← Anterior</button>
+    <span>Página {{ (skip / limit) + 1 }}</span>
+    <button (click)="nextPage()">Próxima →</button>
+  </div>
+
+  <!-- Modal Form -->
+  <div *ngIf="showForm" class="modal">
+    <div class="modal-content">
+      <h2>{{ editingId ? 'Editar' : 'Nova' }} Aplicação</h2>
+      <form (ngSubmit)="save()">
+        <div class="form-group">
+          <label>Nome *</label>
+          <input [(ngModel)]="formData.name" name="name" type="text" required />
+        </div>
+        <div class="form-group">
+          <label>Equipe *</label>
+          <input [(ngModel)]="formData.ownerTeam" name="ownerTeam" type="text" required />
+        </div>
+        <div class="form-group">
+          <label>Repositório URL</label>
+          <input [(ngModel)]="formData.repoUrl" name="repoUrl" type="text" />
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-save">Salvar</button>
+          <button type="button" (click)="closeForm()" class="btn-cancel">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

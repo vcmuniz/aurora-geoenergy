@@ -1,0 +1,160 @@
+.audit-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+.filters {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-width: 200px;
+
+      &:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+      }
+    }
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  font-size: 13px;
+
+  th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+  }
+
+  tr:hover {
+    background-color: #f9f9f9;
+  }
+}
+
+.request-id {
+  font-family: monospace;
+  font-size: 11px;
+  color: #666;
+}
+
+.action-CREATE {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.action-UPDATE {
+  background-color: #cfe2ff;
+  color: #084298;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.action-DELETE {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.btn-expand {
+  background-color: #17a2b8;
+  color: white;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+
+  &:hover {
+    background-color: #138496;
+  }
+}
+
+.details-row {
+  background-color: #f0f8ff;
+}
+
+.details {
+  padding: 20px;
+
+  p {
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+
+  pre {
+    background-color: #f5f5f5;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    font-size: 11px;
+  }
+}
+
+.loading, .empty {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+
+  button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+
+    &:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  }
+}

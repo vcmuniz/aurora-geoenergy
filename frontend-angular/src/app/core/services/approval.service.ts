@@ -11,8 +11,16 @@ export class ApprovalService {
 
   constructor(private http: HttpClient) {}
 
+  list(skip: number = 0, limit: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}?skip=${skip}&limit=${limit}`);
+  }
+
   getById(id: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
+  }
+
+  approve(request: ApprovalRequest): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}`, request);
   }
 
   create(releaseId: string, approverEmail: string, request: ApprovalRequest): Observable<any> {
