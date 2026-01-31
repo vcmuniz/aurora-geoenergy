@@ -2,14 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '@core/services/auth.service';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, CommonModule, RouterLink],
   template: `
-    <div class="app-layout" [class.authenticated]="isAuthenticated">
-      <aside class="sidebar" *ngIf="isAuthenticated">
+    <div class="app-layout" [class.authenticated]="isAuthenticated$ | async">
+      <aside class="sidebar" *ngIf="isAuthenticated$ | async">
         <div class="sidebar-header">
           <h2>Aurora</h2>
         </div>
@@ -165,10 +166,13 @@ import { AuthService } from '@core/services/auth.service';
   `]
 })
 export class AppComponent implements OnInit {
-  isAuthenticated = false;
+  isAuthenticated$;
   currentUser$;
 
   constructor(private authService: AuthService, private router: Router) {
+    this.isAuthenticated$ = this.authService.user$.pipe(
+      map(user => !!user && this.authService.isAuthenticated())
+    );
     this.currentUser$ = this.authService.user$;
   }
 
@@ -176,24 +180,18 @@ export class AppComponent implements OnInit {
     if (this.authService.isAuthenticated()) {
       this.authService.getMe().subscribe({
         next: () => {
-          this.isAuthenticated = true;
+          // User loaded
         },
         error: (err) => {
           console.warn('Token expired, logging out');
           this.authService.logout();
-          this.isAuthenticated = false;
         }
       });
     }
   }
 
-  private updateAuthStatus(): void {
-    this.isAuthenticated = this.authService.isAuthenticated();
-  }
-
   logout(): void {
     this.authService.logout();
-    this.isAuthenticated = false;
     this.router.navigate(['/login']);
   }
 }
