@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PromotionUseCase = void 0;
-const exceptions_1 = require("@domain/exceptions");
-const logger_1 = require("@core/logger");
+const exceptions_1 = require("../../domain/exceptions");
+const logger_1 = require("../../core/logger");
 class PromotionUseCase {
     constructor(backendClient) {
         this.backendClient = backendClient;

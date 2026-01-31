@@ -173,16 +173,11 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.updateAuthStatus();
-    this.authService.user$.subscribe(() => {
-      this.updateAuthStatus();
-    });
-  }
-
-  private updateAuthStatus(): void {
-    this.isAuthenticated = this.authService.isAuthenticated();
-    if (this.isAuthenticated) {
+    if (this.authService.isAuthenticated()) {
       this.authService.getMe().subscribe({
+        next: () => {
+          this.isAuthenticated = true;
+        },
         error: (err) => {
           console.warn('Token expired, logging out');
           this.authService.logout();
@@ -190,6 +185,10 @@ export class AppComponent implements OnInit {
         }
       });
     }
+  }
+
+  private updateAuthStatus(): void {
+    this.isAuthenticated = this.authService.isAuthenticated();
   }
 
   logout(): void {

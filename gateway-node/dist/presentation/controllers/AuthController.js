@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
-const utils_1 = require("@core/utils");
+const utils_1 = require("../../core/utils");
 class AuthController {
     constructor(authUseCase) {
         this.authUseCase = authUseCase;

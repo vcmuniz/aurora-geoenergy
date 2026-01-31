@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProxyController = void 0;
-const logger_1 = require("@core/logger");
-const utils_1 = require("@core/utils");
+const logger_1 = require("../../core/logger");
+const utils_1 = require("../../core/utils");
 class ProxyController {
     constructor(backendClient) {
         this.backendClient = backendClient;

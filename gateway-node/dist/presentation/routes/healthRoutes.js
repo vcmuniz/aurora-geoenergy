@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createHealthRoutes = createHealthRoutes;
 const express_1 = require("express");
-const utils_1 = require("@core/utils");
+const utils_1 = require("../../core/utils");
 function createHealthRoutes() {
     const router = (0, express_1.Router)();
     router.get('/health', (req, res) => {
