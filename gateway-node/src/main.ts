@@ -31,7 +31,7 @@ try {
   app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
   app.use(requestIdMiddleware);
-  // app.use(rateLimitByIp);
+  app.use(rateLimitByIp);
 
   const backendClient = new AxiosBackendClient(config.backendUrl);
 
@@ -40,7 +40,7 @@ try {
   app.use(createAuthRoutes(backendClient));
 
   app.use(authMiddleware);
-  // app.use(rateLimitByUser);
+  app.use(rateLimitByUser);
 
   app.use(createPromotionRoutes(backendClient));
   app.use('/api', createProxyRoutes(backendClient));
