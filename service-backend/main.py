@@ -3,6 +3,8 @@ from src.presentation.middleware.exception_handler import setup_exception_handle
 from src.presentation.middleware.request_id_middleware import request_id_middleware
 from src.presentation.controllers.auth_controller import router as auth_router
 from src.presentation.routes.application_routes import router as application_router
+from src.presentation.routes.release_routes import router as release_router
+from src.presentation.routes.approval_routes import router as approval_router
 
 app = FastAPI(
     title="Aurora Release Management API",
@@ -18,6 +20,8 @@ setup_exception_handlers(app)
 # Registrar routers
 app.include_router(auth_router)
 app.include_router(application_router)
+app.include_router(release_router)
+app.include_router(approval_router)
 
 @app.get("/health", tags=["Health"])
 async def health_check():
