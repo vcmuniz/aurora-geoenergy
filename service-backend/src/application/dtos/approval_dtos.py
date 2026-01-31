@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -8,7 +8,6 @@ class ApprovalRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
     
     release_id: str = Field(alias='releaseId')
-    outcome: str  # APPROVED, REJECTED
     notes: Optional[str] = None
 
 
@@ -17,17 +16,27 @@ class ApprovalResponse(BaseModel):
     
     id: str
     release_id: str = Field(alias='releaseId')
-    approver_email: str = Field(alias='approverEmail')
-    outcome: str
-    notes: Optional[str]
-    created_at: datetime = Field(alias='createdAt')
+    approver_id: Optional[str] = Field(None, alias='approverId')
+    outcome: Optional[str] = None
+    notes: Optional[str] = None
+    created_at: datetime
     
-    @model_validator(mode='before')
+    @field_validator('id', 'release_id', 'approver_id', mode='before')
     @classmethod
-    def convert_ids(cls, data):
-        if isinstance(data, dict):
-            if 'id' in data and isinstance(data['id'], UUID):
-                data['id'] = str(data['id'])
-            if 'release_id' in data and isinstance(data['release_id'], UUID):
-                data['release_id'] = str(data['release_id'])
-        return data
+    def convert_ids(cls, v):
+        if isinstance(v, UUID):
+            return str(v)
+        return v
+    
+    @staticmethod
+    def from_orm(obj):
+        """Convert ORM object to Response DTO, handling UUID conversion"""
+        data = {
+            'id': str(obj.id) if isinstance(obj.id, UUID) else obj.id,
+            'release_id': str(obj.release_id) if isinstance(obj.release_id, UUID) else obj.release_id,
+            'approver_id': str(obj.approver_id) if isinstance(obj.approver_id, UUID) else obj.approver_id,
+            'outcome': obj.outcome,
+            'notes': obj.notes,
+            'created_at': obj.created_at
+        }
+        return ApprovalResponse(**data)

@@ -13,7 +13,8 @@ def create_approval(release_id: UUID, approver_email: str, request: ApprovalRequ
     try:
         use_case = ApprovalUseCase(db)
         result = use_case.create(release_id, approver_email, request)
-        return ApiResponse.success_response(result.model_dump(), None).model_dump()
+        dto = ApprovalResponse.from_orm(result)
+        return ApiResponse.success_response(dto.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
@@ -25,7 +26,8 @@ def get_approval(approval_id: UUID, db = Depends(get_db)):
     try:
         use_case = ApprovalUseCase(db)
         result = use_case.get_by_id(approval_id)
-        return ApiResponse.success_response(result.model_dump(), None).model_dump()
+        dto = ApprovalResponse.from_orm(result)
+        return ApiResponse.success_response(dto.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
@@ -37,10 +39,8 @@ def list_approvals_by_release(release_id: UUID, db = Depends(get_db)):
     try:
         use_case = ApprovalUseCase(db)
         results = use_case.list_by_release(release_id)
-        return ApiResponse.success_response(
-            [r.model_dump() for r in results],
-            None
-        ).model_dump()
+        dtos = [ApprovalResponse.from_orm(r).model_dump(by_alias=True) for r in results]
+        return ApiResponse.success_response(dtos, None).model_dump()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -50,9 +50,7 @@ def list_pending_by_approver(approver_email: str, db = Depends(get_db)):
     try:
         use_case = ApprovalUseCase(db)
         results = use_case.list_pending_by_approver(approver_email)
-        return ApiResponse.success_response(
-            [r.model_dump() for r in results],
-            None
-        ).model_dump()
+        dtos = [ApprovalResponse.from_orm(r).model_dump(by_alias=True) for r in results]
+        return ApiResponse.success_response(dtos, None).model_dump()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

@@ -13,7 +13,8 @@ def create_application(request: ApplicationRequest, db = Depends(get_db)):
     try:
         use_case = ApplicationUseCase(db)
         result = use_case.create(request)
-        return ApiResponse.success_response(result.model_dump(), None).model_dump()
+        dto = ApplicationResponse.from_orm(result)
+        return ApiResponse.success_response(dto.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
@@ -25,7 +26,8 @@ def get_application(app_id: UUID, db = Depends(get_db)):
     try:
         use_case = ApplicationUseCase(db)
         result = use_case.get_by_id(app_id)
-        return ApiResponse.success_response(result.model_dump(), None).model_dump()
+        dto = ApplicationResponse.from_orm(result)
+        return ApiResponse.success_response(dto.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
@@ -37,10 +39,8 @@ def list_applications(skip: int = 0, limit: int = 100, db = Depends(get_db)):
     try:
         use_case = ApplicationUseCase(db)
         results = use_case.list_all(skip, limit)
-        return ApiResponse.success_response(
-            [r.model_dump() for r in results], 
-            None
-        ).model_dump()
+        dtos = [ApplicationResponse.from_orm(r).model_dump(by_alias=True) for r in results]
+        return ApiResponse.success_response(dtos, None).model_dump()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -50,7 +50,8 @@ def update_application(app_id: UUID, request: ApplicationRequest, db = Depends(g
     try:
         use_case = ApplicationUseCase(db)
         result = use_case.update(app_id, request)
-        return ApiResponse.success_response(result.model_dump(), None).model_dump()
+        dto = ApplicationResponse.from_orm(result)
+        return ApiResponse.success_response(dto.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:

@@ -13,7 +13,13 @@ class ProxyController {
             const method = req.method.toUpperCase();
             const response = await this.backendClient[method.toLowerCase()](targetPath, ['GET', 'HEAD', 'DELETE'].includes(method) ? undefined : req.body, req.context.requestId);
             if (response.status >= 200 && response.status < 300) {
-                res.status(response.status).json((0, utils_1.formatResponse)(true, response.data, undefined, undefined, req.context.requestId));
+                // Backend já retorna resposta formatada, apenas passar através
+                const backendResponse = response.data;
+                res.status(response.status).json({
+                    ...backendResponse,
+                    requestId: req.context.requestId,
+                    timestamp: new Date().toISOString()
+                });
             }
             else {
                 res.status(response.status).json((0, utils_1.formatResponse)(false, undefined, response.data?.error || response.data?.message || 'Request failed', response.data?.code || 'REQUEST_ERROR', req.context.requestId));

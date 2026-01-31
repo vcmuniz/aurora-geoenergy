@@ -18,9 +18,13 @@ export class ProxyController {
       );
 
       if (response.status >= 200 && response.status < 300) {
-        res.status(response.status).json(
-          formatResponse(true, response.data, undefined, undefined, req.context.requestId)
-        );
+        // Backend já retorna resposta formatada, apenas passar através
+        const backendResponse = response.data;
+        res.status(response.status).json({
+          ...backendResponse,
+          requestId: req.context.requestId,
+          timestamp: new Date().toISOString()
+        });
       } else {
         res.status(response.status).json(
           formatResponse(

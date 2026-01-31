@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -21,9 +21,21 @@ class ApplicationResponse(BaseModel):
     repo_url: Optional[str] = Field(alias='repoUrl')
     created_at: datetime
     
-    @model_validator(mode='before')
+    @field_validator('id', mode='before')
     @classmethod
-    def convert_id(cls, data):
-        if isinstance(data, dict) and 'id' in data and isinstance(data['id'], UUID):
-            data['id'] = str(data['id'])
-        return data
+    def convert_id(cls, v):
+        if isinstance(v, UUID):
+            return str(v)
+        return v
+    
+    @staticmethod
+    def from_orm(obj):
+        """Convert ORM object to Response DTO, handling UUID conversion"""
+        data = {
+            'id': str(obj.id) if isinstance(obj.id, UUID) else obj.id,
+            'name': obj.name,
+            'owner_team': obj.owner_team,
+            'repo_url': obj.repo_url,
+            'created_at': obj.created_at
+        }
+        return ApplicationResponse(**data)
