@@ -2,26 +2,49 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '@core/services/auth.service';
+import { map } from 'rxjs';
+import { User } from '@shared/models/auth.model';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, CommonModule, RouterLink],
   template: `
-    <div class="app-layout">
-      <nav class="navbar" *ngIf="isAuthenticated$ | async as isAuth; else loginLayout">
-        <div class="nav-content">
-          <div class="nav-logo">Aurora Release Manager</div>
-          <div class="nav-links">
-            <a routerLink="/dashboard" class="nav-link">Dashboard</a>
-            <a routerLink="/applications" class="nav-link">Aplicações</a>
-            <a routerLink="/releases" class="nav-link">Releases</a>
-            <a routerLink="/approvals" class="nav-link">Aprovações</a>
-            <a routerLink="/audit" class="nav-link">Audit</a>
-            <button (click)="logout()" class="nav-logout">Logout</button>
-          </div>
+    <div class="app-layout" *ngIf="(isAuthenticated$ | async) as isAuth; else loginLayout">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h2>Aurora</h2>
         </div>
-      </nav>
+        <nav class="sidebar-nav">
+          <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+          </a>
+          <a routerLink="/applications" routerLinkActive="active" class="nav-item">
+            <span class="icon">📦</span>
+            <span>Aplicações</span>
+          </a>
+          <a routerLink="/releases" routerLinkActive="active" class="nav-item">
+            <span class="icon">🚀</span>
+            <span>Releases</span>
+          </a>
+          <a routerLink="/approvals" routerLinkActive="active" class="nav-item">
+            <span class="icon">✅</span>
+            <span>Aprovações</span>
+          </a>
+          <a routerLink="/audit" routerLinkActive="active" class="nav-item">
+            <span class="icon">📋</span>
+            <span>Audit</span>
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="user-info">
+            <div class="user-name">{{ (currentUser$ | async)?.name || 'Usuário' }}</div>
+            <div class="user-email">{{ (currentUser$ | async)?.email }}</div>
+          </div>
+          <button (click)="logout()" class="btn-logout">Logout</button>
+        </div>
+      </aside>
       <main class="main-content">
         <router-outlet></router-outlet>
       </main>
@@ -33,58 +56,97 @@ import { AuthService } from '@core/services/auth.service';
   styles: [`
     .app-layout {
       display: flex;
-      flex-direction: column;
       height: 100vh;
+      background-color: #f5f5f5;
     }
 
-    .navbar {
+    .sidebar {
+      width: 250px;
       background-color: #2c3e50;
       color: white;
-      padding: 0;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .nav-content {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
+      flex-direction: column;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     }
 
-    .nav-logo {
-      font-size: 18px;
-      font-weight: bold;
-      padding: 16px 0;
-    }
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
-    .nav-links {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
-
-    .nav-link {
-      color: white;
-      text-decoration: none;
-      padding: 8px 12px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
-
-      &:hover {
-        background-color: rgba(255, 255, 255, 0.1);
+      h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: bold;
       }
     }
 
-    .nav-logout {
+    .sidebar-nav {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 15px 0;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+
+      .icon {
+        font-size: 18px;
+      }
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+
+      &.active {
+        background-color: rgba(52, 152, 219, 0.3);
+        color: #3498db;
+        border-left-color: #3498db;
+      }
+    }
+
+    .sidebar-footer {
+      padding: 15px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .user-info {
+      background-color: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 4px;
+    }
+
+    .user-name {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .user-email {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      word-break: break-all;
+    }
+
+    .btn-logout {
       background-color: #e74c3c;
       color: white;
       border: none;
-      padding: 8px 16px;
+      padding: 10px 16px;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 14px;
       transition: background-color 0.2s;
 
       &:hover {
@@ -95,14 +157,20 @@ import { AuthService } from '@core/services/auth.service';
     .main-content {
       flex: 1;
       overflow-y: auto;
+      background-color: #f5f5f5;
     }
   `]
 })
 export class AppComponent implements OnInit {
   isAuthenticated$;
+  currentUser$;
 
   constructor(private authService: AuthService, private router: Router) {
-    this.isAuthenticated$ = this.authService.isLoggedIn;
+    this.isAuthenticated$ = this.authService.user$.pipe(
+      // @ts-ignore
+      map(() => this.authService.isAuthenticated())
+    );
+    this.currentUser$ = this.authService.user$;
   }
 
   ngOnInit(): void {
