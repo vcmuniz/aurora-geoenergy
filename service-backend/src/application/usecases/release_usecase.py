@@ -12,14 +12,14 @@ from src.domain.services.scoring_service import ScoringService
 
 
 class ReleaseUseCase:
-    def __init__(self, session: Session, actor_email: str = "system"):
+    def __init__(self, session: Session, actor_email: str = None):
         self.repo = ReleaseRepository(session)
         self.event_repo = ReleaseEventRepository(session)
         self.approval_repo = ApprovalRepository(session)
         self.audit_repo = AuditLogRepository(session)
         self.app_repo = ApplicationRepository(session)
         self.session = session
-        self.actor_email = actor_email
+        self.actor_email = actor_email or "unknown"
 
     def create(self, request: ReleaseRequest) -> ReleaseResponse:
         app_id = UUID(request.application_id)

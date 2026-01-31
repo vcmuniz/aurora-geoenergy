@@ -92,9 +92,14 @@ def list_rejected_releases_current_user(skip: int = Query(0), limit: int = Query
 
 
 @router.get("", response_model=dict)
-def list_approvals(skip: int = 0, limit: int = 100, db = Depends(get_db)):
+def list_approvals(skip: int = 0, limit: int = 100, authorization: str = Header(None), db = Depends(get_db)):
     try:
-        use_case = ApprovalUseCase(db)
+        if not authorization:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token não fornecido")
+        
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        use_case = ApprovalUseCase(db, actor_email)
         results = use_case.list_all(skip, limit)
         dtos = [r.model_dump(by_alias=True) for r in results]
         return ApiResponse.success_response(dtos, None).model_dump()
@@ -103,9 +108,14 @@ def list_approvals(skip: int = 0, limit: int = 100, db = Depends(get_db)):
 
 
 @router.post("/{release_id}", response_model=dict)
-def create_approval(release_id: UUID, request: ApprovalRequest, db = Depends(get_db)):
+def create_approval(release_id: UUID, request: ApprovalRequest, authorization: str = Header(None), db = Depends(get_db)):
     try:
-        use_case = ApprovalUseCase(db)
+        if not authorization:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token não fornecido")
+        
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        use_case = ApprovalUseCase(db, actor_email)
         result = use_case.create(release_id, request.approver_email, request)
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
@@ -115,9 +125,14 @@ def create_approval(release_id: UUID, request: ApprovalRequest, db = Depends(get
 
 
 @router.get("/{approval_id}", response_model=dict)
-def get_approval(approval_id: UUID, db = Depends(get_db)):
+def get_approval(approval_id: UUID, authorization: str = Header(None), db = Depends(get_db)):
     try:
-        use_case = ApprovalUseCase(db)
+        if not authorization:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token não fornecido")
+        
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        use_case = ApprovalUseCase(db, actor_email)
         result = use_case.get_by_id(approval_id)
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
@@ -137,7 +152,7 @@ def approve_release(release_id: UUID, authorization: str = Header(None), body: O
         approver_email = token_payload.email
         notes = (body or {}).get('notes', '') if body else ''
         
-        use_case = ApprovalUseCase(db)
+        use_case = ApprovalUseCase(db, approver_email)
         result = use_case.approve(release_id, approver_email, notes)
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
@@ -157,7 +172,7 @@ def reject_release(release_id: UUID, authorization: str = Header(None), body: Op
         approver_email = token_payload.email
         notes = (body or {}).get('notes', '') if body else ''
         
-        use_case = ApprovalUseCase(db)
+        use_case = ApprovalUseCase(db, approver_email)
         result = use_case.reject(release_id, approver_email, notes)
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
@@ -168,9 +183,14 @@ def reject_release(release_id: UUID, authorization: str = Header(None), body: Op
 
 
 @router.put("/{approval_id}", response_model=dict)
-def update_approval(approval_id: UUID, body: dict = Body(...), db = Depends(get_db)):
+def update_approval(approval_id: UUID, body: dict = Body(...), authorization: str = Header(None), db = Depends(get_db)):
     try:
-        use_case = ApprovalUseCase(db)
+        if not authorization:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token não fornecido")
+        
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        use_case = ApprovalUseCase(db, actor_email)
         result = use_case.update_outcome(approval_id, body.get('outcome'), body.get('notes'))
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
@@ -180,9 +200,14 @@ def update_approval(approval_id: UUID, body: dict = Body(...), db = Depends(get_
 
 
 @router.get("/release/{release_id}", response_model=dict)
-def list_approvals_by_release(release_id: UUID, db = Depends(get_db)):
+def list_approvals_by_release(release_id: UUID, authorization: str = Header(None), db = Depends(get_db)):
     try:
-        use_case = ApprovalUseCase(db)
+        if not authorization:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token não fornecido")
+        
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        use_case = ApprovalUseCase(db, actor_email)
         results = use_case.list_by_release(release_id)
         dtos = [r.model_dump(by_alias=True) for r in results]
         return ApiResponse.success_response(dtos, None).model_dump()

@@ -26,9 +26,14 @@ def create_release(request: ReleaseRequest, db = Depends(get_db), authorization:
 
 
 @router.get("", response_model=dict)
-def list_all_releases(skip: int = Query(0), limit: int = Query(100), db = Depends(get_db)):
+def list_all_releases(skip: int = Query(0), limit: int = Query(100), authorization: str = Header(None), db = Depends(get_db)):
     try:
-        use_case = ReleaseUseCase(db)
+        if not authorization:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token não fornecido")
+        
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        use_case = ReleaseUseCase(db, actor_email)
         result = use_case.list_all(skip, limit)
         response_data = {
             'data': [r.model_dump(by_alias=True) for r in result.data],
@@ -42,9 +47,14 @@ def list_all_releases(skip: int = Query(0), limit: int = Query(100), db = Depend
 
 
 @router.get("/{release_id}", response_model=dict)
-def get_release(release_id: UUID, db = Depends(get_db)):
+def get_release(release_id: UUID, authorization: str = Header(None), db = Depends(get_db)):
     try:
-        use_case = ReleaseUseCase(db)
+        if not authorization:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token não fornecido")
+        
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        use_case = ReleaseUseCase(db, actor_email)
         result = use_case.get_by_id(release_id)
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
@@ -54,9 +64,14 @@ def get_release(release_id: UUID, db = Depends(get_db)):
 
 
 @router.get("/application/{app_id}", response_model=dict)
-def list_releases_by_application(app_id: UUID, skip: int = Query(0), limit: int = Query(100), db = Depends(get_db)):
+def list_releases_by_application(app_id: UUID, skip: int = Query(0), limit: int = Query(100), authorization: str = Header(None), db = Depends(get_db)):
     try:
-        use_case = ReleaseUseCase(db)
+        if not authorization:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token não fornecido")
+        
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        use_case = ReleaseUseCase(db, actor_email)
         result = use_case.list_by_application(app_id, skip, limit)
         response_data = {
             'data': [r.model_dump(by_alias=True) for r in result.data],
@@ -84,9 +99,14 @@ def update_release(release_id: UUID, request: ReleaseRequest, db = Depends(get_d
 
 
 @router.put("/{release_id}/status", response_model=dict)
-def update_release_status(release_id: UUID, status: str, db = Depends(get_db)):
+def update_release_status(release_id: UUID, status: str, authorization: str = Header(None), db = Depends(get_db)):
     try:
-        use_case = ReleaseUseCase(db)
+        if not authorization:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token não fornecido")
+        
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        use_case = ReleaseUseCase(db, actor_email)
         result = use_case.update_status(release_id, status)
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
@@ -96,9 +116,14 @@ def update_release_status(release_id: UUID, status: str, db = Depends(get_db)):
 
 
 @router.delete("/{release_id}", response_model=dict)
-def delete_release(release_id: UUID, db = Depends(get_db)):
+def delete_release(release_id: UUID, authorization: str = Header(None), db = Depends(get_db)):
     try:
-        use_case = ReleaseUseCase(db)
+        if not authorization:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token não fornecido")
+        
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        use_case = ReleaseUseCase(db, actor_email)
         use_case.delete(release_id)
         return ApiResponse.success_response({"deleted": True}, None).model_dump()
     except ValueError as e:
@@ -108,8 +133,11 @@ def delete_release(release_id: UUID, db = Depends(get_db)):
 
 
 @router.get("/{release_id}/timeline", response_model=dict)
-def get_release_timeline(release_id: UUID, db = Depends(get_db)):
+def get_release_timeline(release_id: UUID, authorization: str = Header(None), db = Depends(get_db)):
     try:
+        if not authorization:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token não fornecido")
+        
         use_case = ReleaseEventUseCase(db)
         events = use_case.get_timeline(release_id)
         dtos = [e.model_dump(by_alias=True) for e in events]

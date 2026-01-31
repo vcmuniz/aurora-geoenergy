@@ -9,14 +9,14 @@ from src.application.dtos.approval_dtos import ApprovalRequest, ApprovalResponse
 
 
 class ApprovalUseCase:
-    def __init__(self, session: Session, actor_email: str = "system"):
+    def __init__(self, session: Session, actor_email: str = None):
         self.repo = ApprovalRepository(session)
         self.event_repo = ReleaseEventRepository(session)
         self.audit_repo = AuditLogRepository(session)
         self.release_repo = ReleaseRepository(session)
         self.app_repo = ApplicationRepository(session)
         self.session = session
-        self.actor_email = actor_email
+        self.actor_email = actor_email or "unknown"
 
     def create(self, release_id: UUID, approver_email: str, request: ApprovalRequest) -> ApprovalResponse:
         approval = self.repo.create(
