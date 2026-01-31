@@ -24,6 +24,8 @@ export class ReleasesComponent implements OnInit {
   approvalCounts: Map<string, { approved: number; rejected: number }> = new Map();
   loading = false;
   showForm = false;
+  isEditMode = false;
+  editingReleaseId: string | null = null;
   selectedAppId = '';
   selectedReleaseId: string | null = null;
   timeline: any[] = [];
@@ -112,6 +114,8 @@ export class ReleasesComponent implements OnInit {
   }
 
   openForm(): void {
+    this.isEditMode = false;
+    this.editingReleaseId = null;
     this.formData = {
       applicationId: this.selectedAppId,
       version: '',
@@ -122,25 +126,54 @@ export class ReleasesComponent implements OnInit {
     this.showForm = true;
   }
 
+  editRelease(release: Release): void {
+    this.isEditMode = true;
+    this.editingReleaseId = release.id;
+    this.formData = {
+      applicationId: release.applicationId,
+      version: release.version,
+      env: release.env,
+      evidenceUrl: release.evidenceUrl || '',
+      evidenceScore: release.evidenceScore || 0
+    };
+    this.showForm = true;
+  }
+
   closeForm(): void {
     this.showForm = false;
+    this.isEditMode = false;
+    this.editingReleaseId = null;
   }
 
   save(): void {
-    if (!this.formData.version || !this.selectedAppId) {
-      alert('Versão e Aplicação são obrigatórias');
+    if (!this.formData.version) {
+      alert('Versão é obrigatória');
       return;
     }
 
-    this.formData.applicationId = this.selectedAppId;
-    this.formData.actor = this.currentUser;
-    this.releaseService.create(this.formData).subscribe({
-      next: () => {
-        this.loadReleases();
-        this.closeForm();
-      },
-      error: (err) => console.error('Erro ao criar:', err)
-    });
+    if (this.isEditMode && this.editingReleaseId) {
+      this.formData.applicationId = this.selectedAppId;
+      this.releaseService.update(this.editingReleaseId, this.formData).subscribe({
+        next: () => {
+          this.loadReleases();
+          this.closeForm();
+        },
+        error: (err) => {
+          console.error('Erro ao atualizar:', err);
+          alert('Erro ao atualizar release');
+        }
+      });
+    } else {
+      this.formData.applicationId = this.selectedAppId;
+      this.formData.actor = this.currentUser;
+      this.releaseService.create(this.formData).subscribe({
+        next: () => {
+          this.loadReleases();
+          this.closeForm();
+        },
+        error: (err) => console.error('Erro ao criar:', err)
+      });
+    }
   }
 
   delete(id: string): void {

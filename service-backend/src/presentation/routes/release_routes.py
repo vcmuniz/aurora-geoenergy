@@ -6,6 +6,7 @@ from src.application.usecases.release_event_usecase import ReleaseEventUseCase
 from src.application.dtos.release_dtos import ReleaseRequest, ReleaseResponse
 from src.application.dtos.api_response import ApiResponse
 from src.core.auth import extract_user_from_token
+from src.domain.services.scoring_service import ScoringService
 
 router = APIRouter(prefix="/releases", tags=["Releases"])
 
@@ -68,6 +69,18 @@ def list_releases_by_application(app_id: UUID, skip: int = Query(0), limit: int 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
+@router.put("/{release_id}", response_model=dict)
+def update_release(release_id: UUID, request: ReleaseRequest, db = Depends(get_db)):
+    try:
+        use_case = ReleaseUseCase(db)
+        result = use_case.update(release_id, request)
+        return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
 @router.put("/{release_id}/status", response_model=dict)
 def update_release_status(release_id: UUID, status: str, db = Depends(get_db)):
     try:
@@ -123,6 +136,25 @@ def promote_release(release_id: UUID, body: dict = Body(...), db = Depends(get_d
             'version': promoted_release.model_dump(by_alias=True)['version'],
             'targetEnv': target_env,
             'status': 'PENDING'
+        }, None).model_dump()
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/calculate-score", response_model=dict)
+def calculate_evidence_score(body: dict = Body(...)):
+    """Calcula score determinístico para uma evidence URL"""
+    try:
+        evidence_url = body.get('evidenceUrl')
+        if not evidence_url:
+            raise ValueError("evidenceUrl é obrigatória")
+        
+        score = ScoringService.calculate_score(evidence_url)
+        return ApiResponse.success_response({
+            'evidenceUrl': evidence_url,
+            'score': score
         }, None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

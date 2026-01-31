@@ -33,6 +33,10 @@ export class ReleaseService {
     return this.http.post<any>(this.apiUrl, request);
   }
 
+  update(id: string, request: ReleaseRequest): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${id}`, request);
+  }
+
   updateStatus(id: string, status: string): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${id}/status?status=${status}`, {});
   }

@@ -7,6 +7,8 @@ from src.infrastructure.repositories.audit_log_repository import AuditLogReposit
 from src.infrastructure.repositories.application_repository import ApplicationRepository
 from src.application.dtos.release_dtos import ReleaseRequest, ReleaseResponse
 from src.application.dtos.pagination_dto import PaginatedResponse
+from src.domain.services.policy_service import get_policy_service
+from src.domain.services.scoring_service import ScoringService
 
 
 class ReleaseUseCase:
@@ -30,12 +32,17 @@ class ReleaseUseCase:
         application = self.app_repo.get_by_id(app_id)
         app_name = application.name if application else "Unknown"
         
+        # Calcular score automaticamente se evidence_url fornecida
+        evidence_score = request.evidence_score or 0
+        if request.evidence_url:
+            evidence_score = ScoringService.calculate_score(request.evidence_url)
+        
         release = self.repo.create(
             application_id=app_id,
             version=request.version,
             env=request.environment,
             evidence_url=request.evidence_url,
-            evidence_score=request.evidence_score or 0
+            evidence_score=evidence_score
         )
         
         self.event_repo.create(
@@ -162,6 +169,27 @@ class ReleaseUseCase:
         self.session.commit()
         return ReleaseResponse.from_orm(release)
 
+    def update(self, release_id: UUID, request: ReleaseRequest) -> ReleaseResponse:
+        release = self.repo.get_by_id(release_id)
+        if not release:
+            raise ValueError(f"Release {release_id} not found")
+        
+        # Calcular score automaticamente se evidence_url fornecida
+        evidence_score = request.evidence_score or 0
+        if request.evidence_url:
+            evidence_score = ScoringService.calculate_score(request.evidence_url)
+        
+        # Atualizar campos
+        release.version = request.version
+        release.env = request.environment
+        release.evidence_url = request.evidence_url
+        release.evidence_score = evidence_score
+        
+        self.session.add(release)
+        self.session.commit()
+        
+        return ReleaseResponse.from_orm(release)
+
     def promote(self, release_id: UUID, target_env: str) -> ReleaseResponse:
         release = self.repo.get_by_id(release_id)
         if not release:
@@ -173,6 +201,25 @@ class ReleaseUseCase:
         # Carregar informações da aplicação
         application = self.app_repo.get_by_id(release.application_id)
         app_name = application.name if application else "Unknown"
+        
+        # VALIDAR POLICY
+        policy_service = get_policy_service()
+        
+        # Contar approvals
+        approvals = self.approval_repo.list_by_release(release_id)
+        approval_count = len([a for a in approvals if a.outcome == 'APPROVED'])
+        
+        # Validar promoção com policy
+        is_valid, message = policy_service.validate_promotion(
+            from_env=from_env,
+            to_env=target_env,
+            approval_count=approval_count,
+            evidence_score=release.evidence_score,
+            evidence_url=release.evidence_url
+        )
+        
+        if not is_valid:
+            raise ValueError(f"Promoção bloqueada: {message}")
         
         # Verificar se já existe essa versão no ambiente alvo
         existing = self.repo.get_by_app_version_env(release.application_id, release.version, target_env)

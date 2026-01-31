@@ -53,6 +53,7 @@
         <td>{{ release.createdAt | date: 'short' }}</td>
         <td>
           <button (click)="loadTimeline(release.id)" class="btn-timeline">Timeline</button>
+          <button (click)="editRelease(release)" class="btn-edit">Editar</button>
           <button (click)="openPromoteModal(release.id, release.env)" class="btn-promote">Promover</button>
           <button (click)="delete(release.id)" class="btn-delete">Deletar</button>
         </td>
@@ -83,7 +84,7 @@
   <!-- Modal Form -->
   <div *ngIf="showForm" class="modal">
     <div class="modal-content">
-      <h2>Novo Release</h2>
+      <h2>{{ isEditMode ? 'Editar Release' : 'Novo Release' }}</h2>
       <form (ngSubmit)="save()">
         <div class="form-group">
           <label>Versão *</label>
@@ -106,7 +107,7 @@
           <input [(ngModel)]="formData.evidenceScore" name="evidenceScore" type="number" min="0" max="100" />
         </div>
         <div class="modal-actions">
-          <button type="submit" class="btn-save">Criar</button>
+          <button type="submit" class="btn-save">{{ isEditMode ? 'Atualizar' : 'Criar' }}</button>
           <button type="button" (click)="closeForm()" class="btn-cancel">Cancelar</button>
         </div>
       </form>
