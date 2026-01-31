@@ -12,22 +12,20 @@ class ProxyController {
             const targetPath = req.path.replace(/^\/api/, '');
             const method = req.method.toUpperCase();
             const response = await this.backendClient[method.toLowerCase()](targetPath, ['GET', 'HEAD', 'DELETE'].includes(method) ? undefined : req.body, req.context.requestId);
-            if (response.status >= 200 && response.status < 300) {
-                // Backend já retorna resposta formatada, apenas passar através
-                const backendResponse = response.data;
-                res.status(response.status).json({
-                    ...backendResponse,
-                    requestId: req.context.requestId,
-                    timestamp: new Date().toISOString()
-                });
-            }
-            else {
-                res.status(response.status).json((0, utils_1.formatResponse)(false, undefined, response.data?.error || response.data?.message || 'Request failed', response.data?.code || 'REQUEST_ERROR', req.context.requestId));
-            }
+            // Backend retorna resposta formatada, passar através com requestId/timestamp do gateway
+            const backendResponse = response.data;
+            res.status(response.status).json({
+                ...backendResponse,
+                requestId: req.context.requestId,
+                timestamp: new Date().toISOString()
+            });
         }
         catch (error) {
-            logger_1.logger.error({ requestId: req.context.requestId, error: error.message }, 'Proxy request failed');
-            throw error;
+            // BackendException é lançada com statusCode, passar error do backend
+            const statusCode = error.statusCode || 500;
+            const errorMessage = error.message || 'Backend error';
+            logger_1.logger.warn({ requestId: req.context.requestId, statusCode, errorMessage }, 'Backend error caught');
+            res.status(statusCode).json((0, utils_1.formatResponse)(false, undefined, errorMessage, error.code || 'BACKEND_ERROR', req.context.requestId));
         }
     }
 }

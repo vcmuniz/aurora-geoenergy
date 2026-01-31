@@ -56,7 +56,7 @@ export class AxiosBackendClient implements IBackendClient {
           'Backend returned error'
         );
         throw new BackendException(
-          response.data?.message || 'Backend error',
+          response.data?.detail || response.data?.message || 'Backend error',
           response.status
         );
       }

@@ -17,31 +17,32 @@ export class ProxyController {
         req.context.requestId
       );
 
-      if (response.status >= 200 && response.status < 300) {
-        // Backend já retorna resposta formatada, apenas passar através
-        const backendResponse = response.data;
-        res.status(response.status).json({
-          ...backendResponse,
-          requestId: req.context.requestId,
-          timestamp: new Date().toISOString()
-        });
-      } else {
-        res.status(response.status).json(
-          formatResponse(
-            false,
-            undefined,
-            response.data?.error || response.data?.message || 'Request failed',
-            response.data?.code || 'REQUEST_ERROR',
-            req.context.requestId
-          )
-        );
-      }
+      // Backend retorna resposta formatada, passar através com requestId/timestamp do gateway
+      const backendResponse = response.data;
+      res.status(response.status).json({
+        ...backendResponse,
+        requestId: req.context.requestId,
+        timestamp: new Date().toISOString()
+      });
     } catch (error: any) {
-      logger.error(
-        { requestId: req.context.requestId, error: error.message },
-        'Proxy request failed'
+      // BackendException é lançada com statusCode, passar error do backend
+      const statusCode = error.statusCode || 500;
+      const errorMessage = error.message || 'Backend error';
+      
+      logger.warn(
+        { requestId: req.context.requestId, statusCode, errorMessage },
+        'Backend error caught'
       );
-      throw error;
+      
+      res.status(statusCode).json(
+        formatResponse(
+          false,
+          undefined,
+          errorMessage,
+          error.code || 'BACKEND_ERROR',
+          req.context.requestId
+        )
+      );
     }
   }
 }
