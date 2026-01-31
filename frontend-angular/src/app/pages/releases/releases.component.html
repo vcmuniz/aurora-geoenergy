@@ -2,18 +2,17 @@
   <h1>Releases</h1>
 
   <div class="app-selector">
-    <label>Selecione Aplicação:</label>
-    <div class="apps-grid">
-      <div 
-        *ngFor="let app of applications" 
-        (click)="selectApp(app.id)"
-        [class.selected]="selectedAppId === app.id"
-        class="app-card">
-        <div class="app-icon">📦</div>
-        <div class="app-name">{{ app.name }}</div>
-        <div class="app-team">{{ app.ownerTeam }}</div>
-      </div>
-    </div>
+    <label for="app-dropdown">Selecione Aplicação:</label>
+    <select 
+      id="app-dropdown"
+      [(ngModel)]="selectedAppId" 
+      (change)="onAppChange()"
+      class="app-dropdown">
+      <option value="">-- Escolher Aplicação --</option>
+      <option *ngFor="let app of applications" [value]="app.id">
+        {{ app.name }} - {{ app.ownerTeam }}
+      </option>
+    </select>
   </div>
 
   <button *ngIf="selectedAppId" (click)="openForm()" class="btn-new">+ Novo Release</button>
