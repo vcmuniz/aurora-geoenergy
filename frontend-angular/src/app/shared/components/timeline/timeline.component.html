@@ -14,7 +14,7 @@
           {{ event.status }}
         </span>
       </div>
-      <p class="event-time">{{ event.createdAt | date: 'short' }}</p>
+      <p class="event-time">{{ event.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
       <p *ngIf="event.actorEmail" class="event-actor">Por: {{ event.actorEmail }}</p>
       <p *ngIf="event.notes" class="event-notes">{{ event.notes }}</p>
     </div>

@@ -50,7 +50,7 @@
             <span class="rejected">✗ {{ getApprovalCounts(release.id).rejected }}</span>
           </div>
         </td>
-        <td>{{ release.createdAt | date: 'short' }}</td>
+        <td>{{ release.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
         <td>
           <button (click)="loadTimeline(release.id)" class="btn-timeline">Timeline</button>
           <button (click)="editRelease(release)" class="btn-edit">Editar</button>

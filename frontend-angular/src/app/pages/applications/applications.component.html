@@ -20,7 +20,7 @@
         <td>{{ app.name }}</td>
         <td>{{ app.ownerTeam }}</td>
         <td><a *ngIf="app.repoUrl" [href]="app.repoUrl" target="_blank">{{ app.repoUrl }}</a></td>
-        <td>{{ app.createdAt | date: 'short' }}</td>
+        <td>{{ app.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
         <td>
           <button (click)="openForm(app)" class="btn-edit">Editar</button>
           <button (click)="delete(app.id)" class="btn-delete">Deletar</button>

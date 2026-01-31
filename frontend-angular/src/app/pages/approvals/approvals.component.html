@@ -40,7 +40,7 @@
           <td><strong>{{ approval.release.applicationName || 'Unknown' }}</strong></td>
           <td>{{ getReleaseVersion(approval.release) }}</td>
           <td>{{ approval.release.env }}</td>
-          <td>{{ approval.release.createdAt | date: 'short' }}</td>
+          <td>{{ approval.release.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
           <td>
             <button 
               *ngIf="selectedFilter === 'pendentes'"

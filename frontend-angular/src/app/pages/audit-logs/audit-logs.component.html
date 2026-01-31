@@ -30,7 +30,7 @@
           </td>
           <td>{{ log.payload?.application_name || '-' }}</td>
           <td>{{ log.actor }}</td>
-          <td>{{ log.createdAt | date: 'short' }}</td>
+          <td>{{ log.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
           <td>
             <button (click)="openDetailsModal(log)" class="btn-details">Detalhes</button>
           </td>
@@ -92,7 +92,7 @@
         </div>
         <div class="summary-item">
           <span class="summary-label">Quando:</span>
-          <span class="summary-text">{{ selectedLog.createdAt | date: 'medium' }}</span>
+          <span class="summary-text">{{ selectedLog.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
         </div>
       </div>
 
