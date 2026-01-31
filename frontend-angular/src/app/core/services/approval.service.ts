@@ -34,17 +34,29 @@ export class ApprovalService {
     return this.http.get<any>(`${this.apiUrl}/approver/${approverEmail}`);
   }
 
-  approve(releaseId: string, approverEmail: string, notes?: string): Observable<any> {
+  listPendingCurrentUser(skip: number = 0, limit: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/pending/current?skip=${skip}&limit=${limit}`);
+  }
+
+  listApprovedCurrentUser(skip: number = 0, limit: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/approved/current?skip=${skip}&limit=${limit}`);
+  }
+
+  listRejectedCurrentUser(skip: number = 0, limit: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/rejected/current?skip=${skip}&limit=${limit}`);
+  }
+
+  approve(releaseId: string, notes?: string): Observable<any> {
     return this.http.post<any>(
       `${this.apiUrl}/${releaseId}/approve`,
-      { approverEmail, notes: notes || '' }
+      { notes: notes || '' }
     );
   }
 
-  reject(releaseId: string, approverEmail: string, notes?: string): Observable<any> {
+  reject(releaseId: string, notes?: string): Observable<any> {
     return this.http.post<any>(
       `${this.apiUrl}/${releaseId}/reject`,
-      { approverEmail, notes: notes || '' }
+      { notes: notes || '' }
     );
   }
 

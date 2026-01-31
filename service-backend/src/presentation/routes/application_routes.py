@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from uuid import UUID
 from src.infrastructure.database import get_db
 from src.application.usecases.application_usecase import ApplicationUseCase
@@ -35,12 +35,17 @@ def get_application(app_id: UUID, db = Depends(get_db)):
 
 
 @router.get("", response_model=dict)
-def list_applications(skip: int = 0, limit: int = 100, db = Depends(get_db)):
+def list_applications(skip: int = Query(0), limit: int = Query(100), db = Depends(get_db)):
     try:
         use_case = ApplicationUseCase(db)
-        results = use_case.list_all(skip, limit)
-        dtos = [ApplicationResponse.from_orm(r).model_dump(by_alias=True) for r in results]
-        return ApiResponse.success_response(dtos, None).model_dump()
+        result = use_case.list_all(skip, limit)
+        response_data = {
+            'data': [ApplicationResponse.from_orm(r).model_dump(by_alias=True) for r in result.data],
+            'total': result.total,
+            'skip': result.skip,
+            'limit': result.limit
+        }
+        return ApiResponse.success_response(response_data, None).model_dump()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 

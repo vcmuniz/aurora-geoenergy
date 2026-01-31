@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { ApprovalService } from '@core/services/approval.service';
 import { ReleaseService } from '@core/services/release.service';
 import { ApplicationService } from '@core/services/application.service';
-import { AuthService } from '@core/services/auth.service';
 import { Release } from '@shared/models/release.model';
 import { Application } from '@shared/models/application.model';
 
@@ -22,6 +21,7 @@ interface PendingApproval {
   styleUrls: ['./approvals.component.scss']
 })
 export class ApprovalsComponent implements OnInit {
+  Math = Math;
   pendingApprovals: PendingApproval[] = [];
   approvedApprovals: PendingApproval[] = [];
   rejectedApprovals: PendingApproval[] = [];
@@ -40,142 +40,77 @@ export class ApprovalsComponent implements OnInit {
   formData = {
     notes: ''
   };
-  
-  currentUser = '';
 
-  skip = 0;
-  limit = 10;
+  // Pagination per tab
+  skipPending = 0;
+  limitPending = 10;
+  totalPending = 0;
+  
+  skipApproved = 0;
+  limitApproved = 10;
+  totalApproved = 0;
+  
+  skipRejected = 0;
+  limitRejected = 10;
+  totalRejected = 0;
 
   constructor(
     private approvalService: ApprovalService,
     private releaseService: ReleaseService,
-    private applicationService: ApplicationService,
-    private authService: AuthService
+    private applicationService: ApplicationService
   ) {}
 
   ngOnInit(): void {
-    // Pegar usuário do AuthService (já autenticado)
-    this.authService.getCurrentUser$().subscribe(user => {
-      if (user?.email) {
-        this.currentUser = user.email;
-        this.loadData();
-      }
-    });
+    this.loadData();
   }
 
   loadData(): void {
     this.loading = true;
-    // Carregar todos os releases
-    this.releaseService.listAll(0, 1000).subscribe({
-      next: (response: any) => {
-        this.allReleases = response.data || [];
-        // Carregar approvals para cada release
-        this.loadAllApprovals();
-      },
-      error: (err) => {
-        console.error('Erro ao carregar releases:', err);
-        this.loading = false;
-      }
-    });
-  }
-
-  loadAllApprovals(): void {
-    // Para cada release, carregar seus approvals
-    let loaded = 0;
     
-    this.allReleases.forEach(release => {
-      this.approvalService.listByReleaseId(release.id).subscribe({
-        next: (response: any) => {
-          this.approvalsByRelease.set(release.id, response.data || []);
-          loaded++;
-          
-          if (loaded === this.allReleases.length) {
-            this.categorizeApprovals();
-            this.loading = false;
-          }
-        },
-        error: (err) => {
-          console.error(`Erro ao carregar approvals de ${release.id}:`, err);
-          this.approvalsByRelease.set(release.id, []);
-          loaded++;
-          
-          if (loaded === this.allReleases.length) {
-            this.categorizeApprovals();
-            this.loading = false;
-          }
-        }
-      });
-    });
-  }
-
-  categorizeApprovals(): void {
-    this.pendingApprovals = [];
-    this.approvedApprovals = [];
-    this.rejectedApprovals = [];
-    
-    // Coletar IDs de aplicações únicas
-    const appIds = new Set<string>();
-    this.allReleases.forEach(release => {
-      appIds.add(release.applicationId);
-    });
-    
-    // Carregar todas as aplicações em paralelo
-    let loadedApps = 0;
-    appIds.forEach(appId => {
-      if (!this.applications.has(appId)) {
-        this.applicationService.getById(appId).subscribe({
-          next: (res: any) => {
-            this.applications.set(appId, res.data);
-            loadedApps++;
-            if (loadedApps === appIds.size) {
-              this.categorizeApprovalsWithApps();
-            }
-          },
-          error: (err) => {
-            console.error(`Erro ao carregar app ${appId}:`, err);
-            loadedApps++;
-            if (loadedApps === appIds.size) {
-              this.categorizeApprovalsWithApps();
-            }
-          }
-        });
-      } else {
-        loadedApps++;
-        if (loadedApps === appIds.size) {
-          this.categorizeApprovalsWithApps();
-        }
-      }
+    // Carregar releases pendentes, aprovados e rejeitados em paralelo COM SKIP/LIMIT
+    Promise.all([
+      this.approvalService.listPendingCurrentUser(this.skipPending, this.limitPending).toPromise(),
+      this.approvalService.listApprovedCurrentUser(this.skipApproved, this.limitApproved).toPromise(),
+      this.approvalService.listRejectedCurrentUser(this.skipRejected, this.limitRejected).toPromise()
+    ]).then(([pendingRes, approvedRes, rejectedRes]: any) => {
+      const pendingReleases = pendingRes?.data?.data || [];
+      const approvedReleases = approvedRes?.data?.data || [];
+      const rejectedReleases = rejectedRes?.data?.data || [];
+      
+      // Armazenar totals
+      this.totalPending = pendingRes?.data?.total || 0;
+      this.totalApproved = approvedRes?.data?.total || 0;
+      this.totalRejected = rejectedRes?.data?.total || 0;
+      
+      // Categorizar releases
+      this.pendingApprovals = pendingReleases.map((r: any) => ({
+        release: r,
+        application: undefined,
+        hasApproval: false
+      }));
+      
+      this.approvedApprovals = approvedReleases.map((r: any) => ({
+        release: r,
+        application: undefined,
+        hasApproval: true
+      }));
+      
+      this.rejectedApprovals = rejectedReleases.map((r: any) => ({
+        release: r,
+        application: undefined,
+        hasApproval: true
+      }));
+      
+      this.filterApprovals();
+      this.loading = false;
+    }).catch((err) => {
+      console.error('Erro ao carregar releases:', err);
+      this.loading = false;
     });
   }
 
   categorizeApprovalsWithApps(): void {
-    this.pendingApprovals = [];
-    this.approvedApprovals = [];
-    this.rejectedApprovals = [];
-    
-    this.allReleases.forEach(release => {
-      const approvals = this.approvalsByRelease.get(release.id) || [];
-      const userApproval = approvals.find(a => a.approverEmail === this.currentUser);
-      const appId = release.applicationId;
-      
-      const approval: PendingApproval = {
-        release,
-        application: this.applications.get(appId),
-        hasApproval: !!userApproval
-      };
-      
-      if (userApproval) {
-        if (userApproval.outcome === 'APPROVED') {
-          this.approvedApprovals.push(approval);
-        } else if (userApproval.outcome === 'REJECTED') {
-          this.rejectedApprovals.push(approval);
-        }
-      } else {
-        this.pendingApprovals.push(approval);
-      }
-    });
-    
-    this.filterApprovals();
+    // Já feito no loadData
   }
 
   filterApprovals(): void {
@@ -211,16 +146,20 @@ export class ApprovalsComponent implements OnInit {
     }
 
     if (this.modalMode === 'approve') {
-      this.approvalService.approve(this.selectedReleaseId, this.currentUser, this.formData.notes).subscribe({
+      this.approvalService.approve(this.selectedReleaseId, this.formData.notes).subscribe({
         next: () => {
+          this.allReleases = [];
+          this.approvalsByRelease.clear();
           this.loadData();
           this.closeModal();
         },
         error: (err) => console.error('Erro ao aprovar:', err)
       });
     } else {
-      this.approvalService.reject(this.selectedReleaseId, this.currentUser, this.formData.notes).subscribe({
+      this.approvalService.reject(this.selectedReleaseId, this.formData.notes).subscribe({
         next: () => {
+          this.allReleases = [];
+          this.approvalsByRelease.clear();
           this.loadData();
           this.closeModal();
         },
@@ -236,5 +175,86 @@ export class ApprovalsComponent implements OnInit {
   getApplicationName(release: Release): string {
     const app = this.applications.get(release.applicationId);
     return app?.name || 'Carregando...';
+  }
+
+  onTabChange(tab: 'pendentes' | 'aprovados' | 'rejeitados'): void {
+    this.selectedFilter = tab;
+    this.updateDisplayed();
+  }
+
+  updateDisplayed(): void {
+    if (this.selectedFilter === 'pendentes') {
+      this.displayedApprovals = this.pendingApprovals;
+    } else if (this.selectedFilter === 'aprovados') {
+      this.displayedApprovals = this.approvedApprovals;
+    } else {
+      this.displayedApprovals = this.rejectedApprovals;
+    }
+  }
+
+  previousPage(): void {
+    if (this.selectedFilter === 'pendentes' && this.skipPending >= this.limitPending) {
+      this.skipPending -= this.limitPending;
+      this.loadData();
+    } else if (this.selectedFilter === 'aprovados' && this.skipApproved >= this.limitApproved) {
+      this.skipApproved -= this.limitApproved;
+      this.loadData();
+    } else if (this.selectedFilter === 'rejeitados' && this.skipRejected >= this.limitRejected) {
+      this.skipRejected -= this.limitRejected;
+      this.loadData();
+    }
+  }
+
+  nextPage(): void {
+    if (this.selectedFilter === 'pendentes' && (this.skipPending + this.limitPending) < this.totalPending) {
+      this.skipPending += this.limitPending;
+      this.loadData();
+    } else if (this.selectedFilter === 'aprovados' && (this.skipApproved + this.limitApproved) < this.totalApproved) {
+      this.skipApproved += this.limitApproved;
+      this.loadData();
+    } else if (this.selectedFilter === 'rejeitados' && (this.skipRejected + this.limitRejected) < this.totalRejected) {
+      this.skipRejected += this.limitRejected;
+      this.loadData();
+    }
+  }
+
+  get canPrevious(): boolean {
+    if (this.selectedFilter === 'pendentes') return this.skipPending > 0;
+    if (this.selectedFilter === 'aprovados') return this.skipApproved > 0;
+    if (this.selectedFilter === 'rejeitados') return this.skipRejected > 0;
+    return false;
+  }
+
+  get canNext(): boolean {
+    if (this.selectedFilter === 'pendentes') return (this.skipPending + this.limitPending) < this.totalPending;
+    if (this.selectedFilter === 'aprovados') return (this.skipApproved + this.limitApproved) < this.totalApproved;
+    if (this.selectedFilter === 'rejeitados') return (this.skipRejected + this.limitRejected) < this.totalRejected;
+    return false;
+  }
+
+  onLimitChange(): void {
+    if (this.selectedFilter === 'pendentes') {
+      this.skipPending = 0;
+    } else if (this.selectedFilter === 'aprovados') {
+      this.skipApproved = 0;
+    } else if (this.selectedFilter === 'rejeitados') {
+      this.skipRejected = 0;
+    }
+    this.loadData();
+  }
+
+  onLimitSelectChange(event: any): void {
+    const newLimit = parseInt(event.target.value, 10);
+    if (this.selectedFilter === 'pendentes') {
+      this.limitPending = newLimit;
+      this.skipPending = 0;
+    } else if (this.selectedFilter === 'aprovados') {
+      this.limitApproved = newLimit;
+      this.skipApproved = 0;
+    } else if (this.selectedFilter === 'rejeitados') {
+      this.limitRejected = newLimit;
+      this.skipRejected = 0;
+    }
+    this.loadData();
   }
 }

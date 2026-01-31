@@ -4,6 +4,7 @@ export type ReleaseStatus = 'PENDING' | 'APPROVED' | 'DEPLOYED' | 'REJECTED';
 export interface Release {
   id: string;
   applicationId: string;
+  applicationName?: string;
   version: string;
   env: ReleaseEnv;
   status: ReleaseStatus;

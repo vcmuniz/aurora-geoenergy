@@ -29,10 +29,12 @@ interface Release {
   styleUrls: ['./audit-logs.component.scss']
 })
 export class AuditLogsComponent implements OnInit {
+  Math = Math;
   auditLogs: AuditLog[] = [];
   loading = false;
   skip = 0;
-  limit = 20;
+  limit = 5;
+  total = 0;
   showDetailsModal = false;
   selectedLog: AuditLog | null = null;
   releaseCache: Map<string, Release> = new Map();
@@ -49,7 +51,8 @@ export class AuditLogsComponent implements OnInit {
     this.loading = true;
     this.auditLogService.list(this.skip, this.limit).subscribe({
       next: (response: any) => {
-        this.auditLogs = response.data || [];
+        this.auditLogs = response.data?.data || [];
+        this.total = response.data?.total || 0;
         this.loading = false;
         // Carregar informações de releases para melhorar descrições
         this.auditLogs.forEach(log => {
@@ -73,6 +76,11 @@ export class AuditLogsComponent implements OnInit {
   closeDetailsModal(): void {
     this.showDetailsModal = false;
     this.selectedLog = null;
+  }
+
+  onLimitChange(): void {
+    this.skip = 0;
+    this.loadAuditLogs();
   }
 
   getActionLabel(action: string): string {
@@ -194,8 +202,18 @@ export class AuditLogsComponent implements OnInit {
   }
 
   nextPage(): void {
-    this.skip += this.limit;
-    this.loadAuditLogs();
+    if ((this.skip + this.limit) < this.total) {
+      this.skip += this.limit;
+      this.loadAuditLogs();
+    }
+  }
+
+  get canPrevious(): boolean {
+    return this.skip > 0;
+  }
+
+  get canNext(): boolean {
+    return (this.skip + this.limit) < this.total;
   }
 }
 

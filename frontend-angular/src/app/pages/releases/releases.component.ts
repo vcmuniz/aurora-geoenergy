@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ReleaseService } from '@core/services/release.service';
 import { ApplicationService } from '@core/services/application.service';
 import { ApprovalService } from '@core/services/approval.service';
+import { AuthService } from '@core/services/auth.service';
 import { ReleaseTimelineService } from '@core/services/release-timeline.service';
 import { TimelineComponent } from '@shared/components/timeline/timeline.component';
 import { Release, ReleaseRequest } from '@shared/models/release.model';
@@ -17,6 +18,7 @@ import { Application } from '@shared/models/application.model';
   styleUrls: ['./releases.component.scss']
 })
 export class ReleasesComponent implements OnInit {
+  Math = Math;
   releases: Release[] = [];
   applications: Application[] = [];
   approvalCounts: Map<string, { approved: number; rejected: number }> = new Map();
@@ -29,7 +31,7 @@ export class ReleasesComponent implements OnInit {
   promoteReleaseId: string | null = null;
   currentEnv: string = '';
   promoteTargetEnv: string = '';
-  currentUser = 'approver@company.co'; // TODO: get from auth
+  currentUser: string = ''; // TODO: get from auth
 
   formData: ReleaseRequest = {
     applicationId: '',
@@ -41,13 +43,16 @@ export class ReleasesComponent implements OnInit {
 
   skip = 0;
   limit = 10;
+  total = 0;
 
   constructor(
     private releaseService: ReleaseService,
     private appService: ApplicationService,
     private approvalService: ApprovalService,
-    private timelineService: ReleaseTimelineService
-  ) {}
+    private timelineService: ReleaseTimelineService,
+    private authService: AuthService
+  ) {
+    this.currentUser = this.authService.getCurrentUserEmail();}
 
   ngOnInit(): void {
     this.loadApplications();
@@ -56,7 +61,7 @@ export class ReleasesComponent implements OnInit {
   loadApplications(): void {
     this.appService.list(0, 100).subscribe({
       next: (response: any) => {
-        this.applications = response.data || [];
+        this.applications = response.data?.data || [];
       },
       error: (err) => console.error('Erro ao carregar aplicações:', err)
     });
@@ -68,7 +73,8 @@ export class ReleasesComponent implements OnInit {
     this.loading = true;
     this.releaseService.list(this.selectedAppId, this.skip, this.limit).subscribe({
       next: (response: any) => {
-        this.releases = response.data || [];
+        this.releases = response.data?.data || [];
+        this.total = response.data?.total || 0;
         this.loading = false;
         // Carregar contagem de aprovações para cada release
         this.releases.forEach(release => {
@@ -85,7 +91,7 @@ export class ReleasesComponent implements OnInit {
   loadApprovalCounts(releaseId: string): void {
     this.approvalService.list(0, 100).subscribe({
       next: (response: any) => {
-        const approvals = response.data || [];
+        const approvals = response.data?.data || [];
         const releaseApprovals = approvals.filter((a: any) => a.releaseId === releaseId);
         const approved = releaseApprovals.filter((a: any) => a.outcome === 'APPROVED').length;
         const rejected = releaseApprovals.filter((a: any) => a.outcome === 'REJECTED').length;
@@ -154,8 +160,23 @@ export class ReleasesComponent implements OnInit {
   }
 
   nextPage(): void {
-    this.skip += this.limit;
+    if ((this.skip + this.limit) < this.total) {
+      this.skip += this.limit;
+      this.loadReleases();
+    }
+  }
+
+  onLimitChange(): void {
+    this.skip = 0;
     this.loadReleases();
+  }
+
+  get canPrevious(): boolean {
+    return this.skip > 0;
+  }
+
+  get canNext(): boolean {
+    return (this.skip + this.limit) < this.total;
   }
 
   loadTimeline(releaseId: string): void {

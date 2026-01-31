@@ -12,6 +12,7 @@ import { Application, ApplicationRequest } from '@shared/models/application.mode
   styleUrls: ['./applications.component.scss']
 })
 export class ApplicationsComponent implements OnInit {
+  Math = Math;
   applications: Application[] = [];
   loading = false;
   showForm = false;
@@ -25,6 +26,7 @@ export class ApplicationsComponent implements OnInit {
 
   skip = 0;
   limit = 10;
+  total = 0;
 
   constructor(private appService: ApplicationService) {}
 
@@ -36,7 +38,8 @@ export class ApplicationsComponent implements OnInit {
     this.loading = true;
     this.appService.list(this.skip, this.limit).subscribe({
       next: (response: any) => {
-        this.applications = response.data || [];
+        this.applications = response.data?.data || [];
+        this.total = response.data?.total || 0;
         this.loading = false;
       },
       error: (err) => {
@@ -108,7 +111,22 @@ export class ApplicationsComponent implements OnInit {
   }
 
   nextPage(): void {
-    this.skip += this.limit;
+    if ((this.skip + this.limit) < this.total) {
+      this.skip += this.limit;
+      this.loadApplications();
+    }
+  }
+
+  onLimitChange(): void {
+    this.skip = 0;
     this.loadApplications();
+  }
+
+  get canPrevious(): boolean {
+    return this.skip > 0;
+  }
+
+  get canNext(): boolean {
+    return (this.skip + this.limit) < this.total;
   }
 }

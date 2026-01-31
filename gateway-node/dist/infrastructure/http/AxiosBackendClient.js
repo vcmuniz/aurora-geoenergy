@@ -18,14 +18,14 @@ class AxiosBackendClient {
     async get(path, requestId, headers) {
         return this.request('GET', path, undefined, requestId, headers);
     }
-    async post(path, data, requestId) {
-        return this.request('POST', path, data, requestId);
+    async post(path, data, requestId, headers) {
+        return this.request('POST', path, data, requestId, headers);
     }
-    async put(path, data, requestId) {
-        return this.request('PUT', path, data, requestId);
+    async put(path, data, requestId, headers) {
+        return this.request('PUT', path, data, requestId, headers);
     }
-    async delete(path, requestId) {
-        return this.request('DELETE', path, undefined, requestId);
+    async delete(path, requestId, headers) {
+        return this.request('DELETE', path, undefined, requestId, headers);
     }
     async request(method, path, data, requestId, customHeaders) {
         try {

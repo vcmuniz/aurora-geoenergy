@@ -10,12 +10,33 @@ export class ProxyController {
     try {
       const targetPath = req.path.replace(/^\/api/, '');
       const method = req.method.toUpperCase();
+      
+      // Construir path com query string
+      const pathWithQuery = Object.keys(req.query).length > 0 
+        ? `${targetPath}?${new URLSearchParams(req.query as any).toString()}`
+        : targetPath;
+      
+      // Extrair headers relevantes da requisição original
+      const forwardedHeaders: Record<string, string> = {};
+      if (req.headers.authorization) {
+        forwardedHeaders.authorization = req.headers.authorization as string;
+      }
 
-      const response = await (this.backendClient as any)[method.toLowerCase()](
-        targetPath,
-        ['GET', 'HEAD', 'DELETE'].includes(method) ? undefined : req.body,
-        req.context.requestId
-      );
+      let response;
+      if (method === 'GET' || method === 'HEAD' || method === 'DELETE') {
+        response = await (this.backendClient as any)[method.toLowerCase()](
+          pathWithQuery,
+          req.context.requestId,
+          forwardedHeaders
+        );
+      } else {
+        response = await (this.backendClient as any)[method.toLowerCase()](
+          pathWithQuery,
+          req.body,
+          req.context.requestId,
+          forwardedHeaders
+        );
+      }
 
       // Backend retorna resposta formatada, passar através com requestId/timestamp do gateway
       const backendResponse = response.data;

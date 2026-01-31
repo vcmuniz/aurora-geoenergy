@@ -18,16 +18,16 @@ export class AxiosBackendClient implements IBackendClient {
     return this.request('GET', path, undefined, requestId, headers);
   }
 
-  async post(path: string, data: any, requestId?: string): Promise<IBackendResponse> {
-    return this.request('POST', path, data, requestId);
+  async post(path: string, data: any, requestId?: string, headers?: Record<string, string>): Promise<IBackendResponse> {
+    return this.request('POST', path, data, requestId, headers);
   }
 
-  async put(path: string, data: any, requestId?: string): Promise<IBackendResponse> {
-    return this.request('PUT', path, data, requestId);
+  async put(path: string, data: any, requestId?: string, headers?: Record<string, string>): Promise<IBackendResponse> {
+    return this.request('PUT', path, data, requestId, headers);
   }
 
-  async delete(path: string, requestId?: string): Promise<IBackendResponse> {
-    return this.request('DELETE', path, undefined, requestId);
+  async delete(path: string, requestId?: string, headers?: Record<string, string>): Promise<IBackendResponse> {
+    return this.request('DELETE', path, undefined, requestId, headers);
   }
 
   private async request(

@@ -2,6 +2,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 from src.infrastructure.repositories.audit_log_repository import AuditLogRepository
 from src.application.dtos.audit_log_dtos import AuditLogResponse
+from src.application.dtos.pagination_dto import PaginatedResponse
 
 
 class AuditLogUseCase:
@@ -15,14 +16,20 @@ class AuditLogUseCase:
         self.session.commit()
         return AuditLogResponse.from_orm(log)
 
-    def list_all(self, skip: int = 0, limit: int = 100):
+    def list_all(self, skip: int = 0, limit: int = 100) -> PaginatedResponse[AuditLogResponse]:
         logs = self.repo.list_all(skip, limit)
-        return [AuditLogResponse.from_orm(log) for log in logs]
+        total = self.repo.count_all()
+        data = [AuditLogResponse.from_orm(log) for log in logs]
+        return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)
 
-    def list_by_entity(self, entity: str, entity_id: UUID, skip: int = 0, limit: int = 100):
+    def list_by_entity(self, entity: str, entity_id: UUID, skip: int = 0, limit: int = 100) -> PaginatedResponse[AuditLogResponse]:
         logs = self.repo.list_by_entity(entity, entity_id, skip, limit)
-        return [AuditLogResponse.from_orm(log) for log in logs]
+        total = self.repo.count_by_entity(entity, entity_id)
+        data = [AuditLogResponse.from_orm(log) for log in logs]
+        return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)
 
-    def list_by_actor(self, actor: str, skip: int = 0, limit: int = 100):
+    def list_by_actor(self, actor: str, skip: int = 0, limit: int = 100) -> PaginatedResponse[AuditLogResponse]:
         logs = self.repo.list_by_actor(actor, skip, limit)
-        return [AuditLogResponse.from_orm(log) for log in logs]
+        total = self.repo.count_by_actor(actor)
+        data = [AuditLogResponse.from_orm(log) for log in logs]
+        return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)

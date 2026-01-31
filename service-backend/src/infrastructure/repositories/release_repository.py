@@ -36,14 +36,27 @@ class ReleaseRepository:
         return self.session.query(ReleaseORM).filter(
             ReleaseORM.application_id == application_id
         ).offset(skip).limit(limit).all()
+    
+    def count_by_application(self, application_id: UUID) -> int:
+        return self.session.query(ReleaseORM).filter(
+            ReleaseORM.application_id == application_id
+        ).count()
 
     def list_by_status(self, status: str, skip: int = 0, limit: int = 100):
         return self.session.query(ReleaseORM).filter(
             ReleaseORM.status == status
         ).offset(skip).limit(limit).all()
+    
+    def count_by_status(self, status: str) -> int:
+        return self.session.query(ReleaseORM).filter(
+            ReleaseORM.status == status
+        ).count()
 
     def list_all(self, skip: int = 0, limit: int = 100):
         return self.session.query(ReleaseORM).offset(skip).limit(limit).all()
+    
+    def count_all(self) -> int:
+        return self.session.query(ReleaseORM).count()
 
     def update_status(self, release_id: UUID, status: str) -> ReleaseORM:
         release = self.get_by_id(release_id)

@@ -6,7 +6,7 @@ export interface IBackendResponse {
 
 export interface IBackendClient {
   get(path: string, requestId?: string, headers?: Record<string, string>): Promise<IBackendResponse>;
-  post(path: string, data: any, requestId?: string): Promise<IBackendResponse>;
-  put(path: string, data: any, requestId?: string): Promise<IBackendResponse>;
-  delete(path: string, requestId?: string): Promise<IBackendResponse>;
+  post(path: string, data: any, requestId?: string, headers?: Record<string, string>): Promise<IBackendResponse>;
+  put(path: string, data: any, requestId?: string, headers?: Record<string, string>): Promise<IBackendResponse>;
+  delete(path: string, requestId?: string, headers?: Record<string, string>): Promise<IBackendResponse>;
 }

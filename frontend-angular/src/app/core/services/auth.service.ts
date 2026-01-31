@@ -41,7 +41,7 @@ export class AuthService {
 
   getCurrentUserEmail(): string {
     const user = this.userSubject.getValue();
-    return user?.email || 'approver@company.co';
+    return user?.email || '';
   }
 
   getCurrentUser$(): Observable<User | null> {

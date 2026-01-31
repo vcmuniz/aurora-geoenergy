@@ -60,28 +60,39 @@ class ApprovalUseCase:
         return [ApprovalResponse.from_orm(a) for a in approvals]
 
     def approve(self, release_id: UUID, approver_email: str, notes: str = None) -> ApprovalResponse:
-        """Criar um registro de aprovação (APPROVED)"""
-        # Verificar se já existe uma aprovação deste usuário para este release
-        existing = self.repo.list_by_release(release_id)
-        for app in existing:
-            if app.approver_email == approver_email:
-                raise ValueError(f"User {approver_email} already approved/rejected this release")
-        
+        """Criar approval com outcome APPROVED"""
         # Buscar release e aplicação para enriquecer audit log
         release = self.release_repo.get_by_id(release_id)
         if not release:
             raise ValueError(f"Release {release_id} not found")
         
+        # Verificar se já existe approval deste usuário para este release
+        existing_approvals = self.repo.list_by_release(release_id)
+        user_approval = next(
+            (a for a in existing_approvals if a.approver_email == approver_email),
+            None
+        )
+        
+        if user_approval and user_approval.outcome:
+            raise ValueError(f"User {approver_email} already approved/rejected this release")
+        
+        # Se já existe mas sem outcome, atualizar; senão criar novo
+        if user_approval and not user_approval.outcome:
+            approval = self.repo.update(
+                user_approval.id,
+                outcome='APPROVED',
+                notes=notes or "Aprovado"
+            )
+        else:
+            approval = self.repo.create(
+                release_id=release_id,
+                approver_email=approver_email,
+                outcome='APPROVED',
+                notes=notes or "Aprovado"
+            )
+        
         application = self.app_repo.get_by_id(release.application_id)
         app_name = application.name if application else "Unknown"
-        
-        # Criar novo registro de approval com outcome APPROVED
-        approval = self.repo.create(
-            release_id=release_id,
-            approver_email=approver_email,
-            outcome='APPROVED',
-            notes=notes or "Aprovado"
-        )
         
         # Criar evento
         self.event_repo.create(
@@ -112,28 +123,39 @@ class ApprovalUseCase:
         return ApprovalResponse.from_orm(approval)
 
     def reject(self, release_id: UUID, approver_email: str, notes: str = None) -> ApprovalResponse:
-        """Criar um registro de rejeição (REJECTED)"""
-        # Verificar se já existe uma aprovação deste usuário para este release
-        existing = self.repo.list_by_release(release_id)
-        for app in existing:
-            if app.approver_email == approver_email:
-                raise ValueError(f"User {approver_email} already approved/rejected this release")
-        
+        """Criar approval com outcome REJECTED"""
         # Buscar release e aplicação para enriquecer audit log
         release = self.release_repo.get_by_id(release_id)
         if not release:
             raise ValueError(f"Release {release_id} not found")
         
+        # Verificar se já existe approval deste usuário para este release
+        existing_approvals = self.repo.list_by_release(release_id)
+        user_approval = next(
+            (a for a in existing_approvals if a.approver_email == approver_email),
+            None
+        )
+        
+        if user_approval and user_approval.outcome:
+            raise ValueError(f"User {approver_email} already approved/rejected this release")
+        
+        # Se já existe mas sem outcome, atualizar; senão criar novo
+        if user_approval and not user_approval.outcome:
+            approval = self.repo.update(
+                user_approval.id,
+                outcome='REJECTED',
+                notes=notes or "Rejeitado"
+            )
+        else:
+            approval = self.repo.create(
+                release_id=release_id,
+                approver_email=approver_email,
+                outcome='REJECTED',
+                notes=notes or "Rejeitado"
+            )
+        
         application = self.app_repo.get_by_id(release.application_id)
         app_name = application.name if application else "Unknown"
-        
-        # Criar novo registro de approval com outcome REJECTED
-        approval = self.repo.create(
-            release_id=release_id,
-            approver_email=approver_email,
-            outcome='REJECTED',
-            notes=notes or "Rejeitado"
-        )
         
         # Criar evento
         self.event_repo.create(

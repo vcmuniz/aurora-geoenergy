@@ -6,6 +6,7 @@ from src.infrastructure.repositories.approval_repository import ApprovalReposito
 from src.infrastructure.repositories.audit_log_repository import AuditLogRepository
 from src.infrastructure.repositories.application_repository import ApplicationRepository
 from src.application.dtos.release_dtos import ReleaseRequest, ReleaseResponse
+from src.application.dtos.pagination_dto import PaginatedResponse
 
 
 class ReleaseUseCase:
@@ -68,17 +69,91 @@ class ReleaseUseCase:
             raise ValueError(f"Release {release_id} not found")
         return ReleaseResponse.from_orm(release)
 
-    def list_by_application(self, app_id: UUID, skip: int = 0, limit: int = 100):
+    def list_by_application(self, app_id: UUID, skip: int = 0, limit: int = 100) -> PaginatedResponse[ReleaseResponse]:
         releases = self.repo.list_by_application(app_id, skip, limit)
-        return [ReleaseResponse.from_orm(r) for r in releases]
+        total = self.repo.count_by_application(app_id)
+        data = [ReleaseResponse.from_orm(r) for r in releases]
+        return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)
 
-    def list_by_status(self, status: str, skip: int = 0, limit: int = 100):
+    def list_by_status(self, status: str, skip: int = 0, limit: int = 100) -> PaginatedResponse[ReleaseResponse]:
         releases = self.repo.list_by_status(status, skip, limit)
-        return [ReleaseResponse.from_orm(r) for r in releases]
+        total = self.repo.count_by_status(status)
+        data = [ReleaseResponse.from_orm(r) for r in releases]
+        return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)
 
-    def list_all(self, skip: int = 0, limit: int = 100):
+    def list_all(self, skip: int = 0, limit: int = 100) -> PaginatedResponse[ReleaseResponse]:
         releases = self.repo.list_all(skip, limit)
-        return [ReleaseResponse.from_orm(r) for r in releases]
+        total = self.repo.count_all()
+        data = [ReleaseResponse.from_orm(r) for r in releases]
+        return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)
+
+    def list_pending_for_user(self, approver_email: str, skip: int = 0, limit: int = 100) -> PaginatedResponse[ReleaseResponse]:
+        """Retorna releases que o usuário ainda NÃO aprovou e NÃO rejeitou"""
+        # Carregar todos os releases para contar
+        all_releases = self.repo.list_all(0, 999999)  # Carregar tudo em memória para contar
+        pending_releases = []
+        
+        for release in all_releases:
+            approvals = self.approval_repo.list_by_release(release.id)
+            user_approval = next(
+                (a for a in approvals if a.approver_email == approver_email and a.outcome),
+                None
+            )
+            
+            if not user_approval:
+                application = self.app_repo.get_by_id(release.application_id)
+                app_name = application.name if application else "Unknown"
+                pending_releases.append((release, app_name))
+        
+        # Aplicar paginação após filtro
+        total = len(pending_releases)
+        paginated = pending_releases[skip:skip + limit]
+        data = [ReleaseResponse.from_orm(r, app_name) for r, app_name in paginated]
+        return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)
+
+    def list_approved_by_user(self, approver_email: str, skip: int = 0, limit: int = 100) -> PaginatedResponse[ReleaseResponse]:
+        """Retorna releases APROVADOS pelo usuário"""
+        all_releases = self.repo.list_all(0, 999999)
+        approved_releases = []
+        
+        for release in all_releases:
+            approvals = self.approval_repo.list_by_release(release.id)
+            user_approval = next(
+                (a for a in approvals if a.approver_email == approver_email),
+                None
+            )
+            
+            if user_approval and user_approval.outcome == 'APPROVED':
+                application = self.app_repo.get_by_id(release.application_id)
+                app_name = application.name if application else "Unknown"
+                approved_releases.append((release, app_name))
+        
+        total = len(approved_releases)
+        paginated = approved_releases[skip:skip + limit]
+        data = [ReleaseResponse.from_orm(r, app_name) for r, app_name in paginated]
+        return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)
+
+    def list_rejected_by_user(self, approver_email: str, skip: int = 0, limit: int = 100) -> PaginatedResponse[ReleaseResponse]:
+        """Retorna releases REJEITADOS pelo usuário"""
+        all_releases = self.repo.list_all(0, 999999)
+        rejected_releases = []
+        
+        for release in all_releases:
+            approvals = self.approval_repo.list_by_release(release.id)
+            user_approval = next(
+                (a for a in approvals if a.approver_email == approver_email),
+                None
+            )
+            
+            if user_approval and user_approval.outcome == 'REJECTED':
+                application = self.app_repo.get_by_id(release.application_id)
+                app_name = application.name if application else "Unknown"
+                rejected_releases.append((release, app_name))
+        
+        total = len(rejected_releases)
+        paginated = rejected_releases[skip:skip + limit]
+        data = [ReleaseResponse.from_orm(r, app_name) for r, app_name in paginated]
+        return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)
 
     def update_status(self, release_id: UUID, status: str) -> ReleaseResponse:
         release = self.repo.update_status(release_id, status)

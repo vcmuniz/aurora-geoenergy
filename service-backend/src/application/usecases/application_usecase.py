@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from src.infrastructure.repositories.application_repository import ApplicationRepository
 from src.application.dtos.application_dtos import ApplicationRequest, ApplicationResponse
+from src.application.dtos.pagination_dto import PaginatedResponse
 
 
 class ApplicationUseCase:
@@ -29,9 +30,11 @@ class ApplicationUseCase:
             raise ValueError(f"Application {app_id} not found")
         return ApplicationResponse.model_validate(app)
 
-    def list_all(self, skip: int = 0, limit: int = 100):
+    def list_all(self, skip: int = 0, limit: int = 100) -> PaginatedResponse[ApplicationResponse]:
         apps = self.repo.list_all(skip, limit)
-        return [ApplicationResponse.model_validate(app) for app in apps]
+        total = self.repo.count_all()
+        data = [ApplicationResponse.model_validate(app) for app in apps]
+        return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)
 
     def update(self, app_id: UUID, request: ApplicationRequest) -> ApplicationResponse:
         app = self.repo.update(app_id, request.name, request.owner_team, request.repo_url)

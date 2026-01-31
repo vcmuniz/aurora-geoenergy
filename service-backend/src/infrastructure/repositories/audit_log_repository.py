@@ -26,13 +26,27 @@ class AuditLogRepository:
             AuditLogORM.entity == entity,
             AuditLogORM.entity_id == str(entity_id)
         ).order_by(AuditLogORM.created_at.desc()).offset(skip).limit(limit).all()
+    
+    def count_by_entity(self, entity: str, entity_id: UUID) -> int:
+        return self.session.query(AuditLogORM).filter(
+            AuditLogORM.entity == entity,
+            AuditLogORM.entity_id == str(entity_id)
+        ).count()
 
     def list_by_actor(self, actor: str, skip: int = 0, limit: int = 100):
         return self.session.query(AuditLogORM).filter(
             AuditLogORM.actor == actor
         ).order_by(AuditLogORM.created_at.desc()).offset(skip).limit(limit).all()
+    
+    def count_by_actor(self, actor: str) -> int:
+        return self.session.query(AuditLogORM).filter(
+            AuditLogORM.actor == actor
+        ).count()
 
     def list_all(self, skip: int = 0, limit: int = 100):
         return self.session.query(AuditLogORM).order_by(
             AuditLogORM.created_at.desc()
         ).offset(skip).limit(limit).all()
+    
+    def count_all(self) -> int:
+        return self.session.query(AuditLogORM).count()

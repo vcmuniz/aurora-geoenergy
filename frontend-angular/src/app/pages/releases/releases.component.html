@@ -65,9 +65,19 @@
   </div>
 
   <div *ngIf="selectedAppId" class="pagination">
-    <button (click)="previousPage()" [disabled]="skip === 0">← Anterior</button>
-    <span>Página {{ (skip / limit) + 1 }}</span>
-    <button (click)="nextPage()">Próxima →</button>
+    <div class="pagination-info">
+      <button (click)="previousPage()" [disabled]="!canPrevious" class="btn-nav">← Anterior</button>
+      <span class="page-info">Página {{ (skip / limit) + 1 }} de {{ Math.ceil(total / limit) }}</span>
+      <button (click)="nextPage()" [disabled]="!canNext" class="btn-nav">Próxima →</button>
+    </div>
+    <div class="items-per-page">
+      <label>Itens por página:</label>
+      <select [(ngModel)]="limit" (change)="onLimitChange()" [ngModelOptions]="{updateOn: 'change'}" class="select-limit">
+        <option [value]="5">5</option>
+        <option [value]="10">10</option>
+        <option [value]="20">20</option>
+      </select>
+    </div>
   </div>
 
   <!-- Modal Form -->

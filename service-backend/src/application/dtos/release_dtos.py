@@ -24,6 +24,7 @@ class ReleaseResponse(BaseModel):
     environment: str = Field(alias='env')
     status: str = "DRAFT"
     application_id: str = Field(alias='applicationId')
+    application_name: Optional[str] = Field(None, alias='applicationName')
     evidence_url: Optional[str] = Field(None, alias='evidenceUrl')
     evidence_score: int = Field(default=0, alias='evidenceScore')
     version_row: int = Field(default=0, alias='versionRow')
@@ -39,7 +40,7 @@ class ReleaseResponse(BaseModel):
         return v
     
     @staticmethod
-    def from_orm(obj):
+    def from_orm(obj, application_name: Optional[str] = None):
         """Convert ORM object to Response DTO, handling UUID conversion"""
         data = {
             'id': str(obj.id) if isinstance(obj.id, UUID) else obj.id,
@@ -47,6 +48,7 @@ class ReleaseResponse(BaseModel):
             'environment': obj.env,
             'status': getattr(obj, 'status', 'DRAFT'),
             'application_id': str(obj.application_id) if isinstance(obj.application_id, UUID) else obj.application_id,
+            'application_name': application_name,
             'evidence_url': getattr(obj, 'evidence_url', None),
             'evidence_score': getattr(obj, 'evidence_score', 0),
             'version_row': getattr(obj, 'version_row', 0),

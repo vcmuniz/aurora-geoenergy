@@ -152,41 +152,111 @@ h1 {
 
 .pagination {
   display: flex;
-  justify-content: center;
-  gap: 20px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
   margin-top: 30px;
-  padding: 20px;
+  padding: 20px 25px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 
-  button {
-    padding: 10px 20px;
-    border: 2px solid #e0e7ff;
-    background-color: white;
-    color: #667eea;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s ease;
+  .pagination-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
 
-    &:hover:not(:disabled) {
-      background-color: #f0f4ff;
-      border-color: #667eea;
+    .btn-nav {
+      padding: 10px 16px;
+      background-color: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.3s ease;
+
+      &:hover:not(:disabled) {
+        background-color: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      &:disabled {
+        background-color: #cbd5e1;
+        cursor: not-allowed;
+        transform: none;
+        opacity: 0.6;
+      }
     }
 
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      color: #cbd5e0;
+    .page-info {
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 14px;
+      min-width: 180px;
+      text-align: center;
     }
   }
 
-  span {
-    color: #7f8c8d;
-    font-weight: 600;
-    padding: 10px 0;
+  .items-per-page {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    label {
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .select-limit {
+      padding: 8px 12px;
+      border: 2px solid #e0e7ff;
+      border-radius: 6px;
+      background-color: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: #2c3e50;
+      transition: all 0.3s ease;
+
+      &:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      &:hover {
+        border-color: #667eea;
+      }
+
+      option {
+        background-color: white;
+        color: #2c3e50;
+        padding: 8px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .pagination {
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+
+    .pagination-info {
+      justify-content: space-between;
+    }
+
+    .items-per-page {
+      justify-content: center;
+    }
   }
 }
 

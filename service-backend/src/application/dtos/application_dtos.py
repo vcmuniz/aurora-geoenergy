@@ -19,7 +19,7 @@ class ApplicationResponse(BaseModel):
     name: str
     owner_team: str = Field(alias='ownerTeam')
     repo_url: Optional[str] = Field(alias='repoUrl')
-    created_at: datetime
+    created_at: datetime = Field(alias='createdAt')
     
     @field_validator('id', mode='before')
     @classmethod

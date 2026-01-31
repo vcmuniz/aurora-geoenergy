@@ -12,6 +12,7 @@ import { AuditLog } from '@shared/models/audit.model';
   styleUrls: ['./audit.component.scss']
 })
 export class AuditComponent implements OnInit {
+  Math = Math;
   auditLogs: AuditLog[] = [];
   loading = false;
   expandedLog: string | null = null;
@@ -20,7 +21,8 @@ export class AuditComponent implements OnInit {
   filterAction = '';
 
   skip = 0;
-  limit = 20;
+  limit = 5;
+  total = 0;
 
   constructor(private auditService: AuditService) {}
 
@@ -32,7 +34,8 @@ export class AuditComponent implements OnInit {
     this.loading = true;
     this.auditService.list(this.skip, this.limit).subscribe({
       next: (response: any) => {
-        this.auditLogs = response.data || [];
+        this.auditLogs = response.data?.data || [];
+        this.total = response.data?.total || 0;
         this.loading = false;
       },
       error: (err) => {
@@ -51,6 +54,11 @@ export class AuditComponent implements OnInit {
     this.expandedLog = this.expandedLog === id ? null : id;
   }
 
+  onLimitChange(): void {
+    this.skip = 0;
+    this.loadAuditLogs();
+  }
+
   getFilteredLogs(): AuditLog[] {
     return this.auditLogs.filter((log) => {
       const actorMatch = !this.filterActor || log.actor.toLowerCase().includes(this.filterActor.toLowerCase());
@@ -67,7 +75,17 @@ export class AuditComponent implements OnInit {
   }
 
   nextPage(): void {
-    this.skip += this.limit;
-    this.loadAuditLogs();
+    if ((this.skip + this.limit) < this.total) {
+      this.skip += this.limit;
+      this.loadAuditLogs();
+    }
+  }
+
+  get canPrevious(): boolean {
+    return this.skip > 0;
+  }
+
+  get canNext(): boolean {
+    return (this.skip + this.limit) < this.total;
   }
 }

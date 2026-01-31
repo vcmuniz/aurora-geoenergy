@@ -21,6 +21,9 @@ class ApplicationRepository:
 
     def list_all(self, skip: int = 0, limit: int = 100):
         return self.session.query(ApplicationORM).offset(skip).limit(limit).all()
+    
+    def count_all(self) -> int:
+        return self.session.query(ApplicationORM).count()
 
     def update(self, app_id: UUID, name: str = None, owner_team: str = None, repo_url: str = None) -> ApplicationORM:
         app = self.get_by_id(app_id)

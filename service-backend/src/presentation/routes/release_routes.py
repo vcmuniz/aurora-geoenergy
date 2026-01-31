@@ -1,18 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body, Query, Header
 from uuid import UUID
 from src.infrastructure.database import get_db
 from src.application.usecases.release_usecase import ReleaseUseCase
 from src.application.usecases.release_event_usecase import ReleaseEventUseCase
 from src.application.dtos.release_dtos import ReleaseRequest, ReleaseResponse
 from src.application.dtos.api_response import ApiResponse
+from src.core.auth import extract_user_from_token
 
 router = APIRouter(prefix="/releases", tags=["Releases"])
 
 
 @router.post("", response_model=dict)
-def create_release(request: ReleaseRequest, db = Depends(get_db)):
+def create_release(request: ReleaseRequest, db = Depends(get_db), authorization: str = Header(None)):
     try:
-        actor_email = getattr(request, 'actor', None) or 'system'
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
         use_case = ReleaseUseCase(db, actor_email)
         result = use_case.create(request)
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
@@ -23,12 +25,17 @@ def create_release(request: ReleaseRequest, db = Depends(get_db)):
 
 
 @router.get("", response_model=dict)
-def list_all_releases(skip: int = 0, limit: int = 100, db = Depends(get_db)):
+def list_all_releases(skip: int = Query(0), limit: int = Query(100), db = Depends(get_db)):
     try:
         use_case = ReleaseUseCase(db)
-        results = use_case.list_all(skip, limit)
-        dtos = [r.model_dump(by_alias=True) for r in results]
-        return ApiResponse.success_response(dtos, None).model_dump()
+        result = use_case.list_all(skip, limit)
+        response_data = {
+            'data': [r.model_dump(by_alias=True) for r in result.data],
+            'total': result.total,
+            'skip': result.skip,
+            'limit': result.limit
+        }
+        return ApiResponse.success_response(response_data, None).model_dump()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -46,12 +53,17 @@ def get_release(release_id: UUID, db = Depends(get_db)):
 
 
 @router.get("/application/{app_id}", response_model=dict)
-def list_releases_by_application(app_id: UUID, skip: int = 0, limit: int = 100, db = Depends(get_db)):
+def list_releases_by_application(app_id: UUID, skip: int = Query(0), limit: int = Query(100), db = Depends(get_db)):
     try:
         use_case = ReleaseUseCase(db)
-        results = use_case.list_by_application(app_id, skip, limit)
-        dtos = [r.model_dump(by_alias=True) for r in results]
-        return ApiResponse.success_response(dtos, None).model_dump()
+        result = use_case.list_by_application(app_id, skip, limit)
+        response_data = {
+            'data': [r.model_dump(by_alias=True) for r in result.data],
+            'total': result.total,
+            'skip': result.skip,
+            'limit': result.limit
+        }
+        return ApiResponse.success_response(response_data, None).model_dump()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -92,10 +104,11 @@ def get_release_timeline(release_id: UUID, db = Depends(get_db)):
 
 
 @router.post("/{release_id}/promote", response_model=dict)
-def promote_release(release_id: UUID, body: dict = Body(...), db = Depends(get_db)):
+def promote_release(release_id: UUID, body: dict = Body(...), db = Depends(get_db), authorization: str = Header(None)):
     try:
         target_env = body.get('targetEnv')
-        actor_email = body.get('actor') or 'system'
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
         
         if not target_env:
             raise ValueError("targetEnv é obrigatório")
