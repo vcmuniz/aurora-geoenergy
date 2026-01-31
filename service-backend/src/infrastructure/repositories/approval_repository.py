@@ -21,6 +21,9 @@ class ApprovalRepository:
     def get_by_id(self, approval_id: UUID) -> ApprovalORM:
         return self.session.query(ApprovalORM).filter(ApprovalORM.id == approval_id).first()
 
+    def list_all(self, skip: int = 0, limit: int = 100):
+        return self.session.query(ApprovalORM).offset(skip).limit(limit).all()
+
     def list_by_release(self, release_id: UUID):
         return self.session.query(ApprovalORM).filter(
             ApprovalORM.release_id == release_id

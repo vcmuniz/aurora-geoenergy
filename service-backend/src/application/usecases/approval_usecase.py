@@ -25,6 +25,10 @@ class ApprovalUseCase:
             raise ValueError(f"Approval {approval_id} not found")
         return ApprovalResponse.from_orm(approval)
 
+    def list_all(self, skip: int = 0, limit: int = 100):
+        approvals = self.repo.list_all(skip, limit)
+        return [ApprovalResponse.from_orm(a) for a in approvals]
+
     def list_by_release(self, release_id: UUID):
         approvals = self.repo.list_by_release(release_id)
         return [ApprovalResponse.from_orm(a) for a in approvals]
@@ -32,9 +36,3 @@ class ApprovalUseCase:
     def list_pending_by_approver(self, approver_email: str):
         approvals = self.repo.list_pending_by_approver(approver_email)
         return [ApprovalResponse.from_orm(a) for a in approvals]
-
-    def get_latest_by_release(self, release_id: UUID) -> ApprovalResponse:
-        approval = self.repo.get_latest_by_release(release_id)
-        if not approval:
-            raise ValueError(f"No approvals found for release {release_id}")
-        return ApprovalResponse.from_orm(approval)
