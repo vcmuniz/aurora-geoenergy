@@ -34,6 +34,7 @@ export class ReleasesComponent implements OnInit {
   currentEnv: string = '';
   promoteTargetEnv: string = '';
   currentUser: string = ''; // TODO: get from auth
+  promoteValidation: any = null;
 
   formData: ReleaseRequest = {
     applicationId: '',
@@ -235,6 +236,41 @@ export class ReleasesComponent implements OnInit {
     this.currentEnv = env;
     this.showPromoteModal = true;
     this.promoteTargetEnv = env === 'DEV' ? 'PRE_PROD' : env === 'PRE_PROD' ? 'PROD' : '';
+    this.promoteValidation = null;
+    
+    // Carregar validação se for PRE_PROD -> PROD
+    if (env === 'PRE_PROD' && this.promoteTargetEnv === 'PROD') {
+      this.validatePromotion(releaseId);
+    }
+  }
+
+  validatePromotion(releaseId: string): void {
+    this.releaseService.getById(releaseId).subscribe({
+      next: (response: any) => {
+        const release = response.data;
+        
+        // Contar approvals
+        this.approvalService.list(0, 100).subscribe({
+          next: (appResponse: any) => {
+            // O endpoint retorna array direta ou wrapped em data
+            const approvals = Array.isArray(appResponse.data) ? appResponse.data : (appResponse.data?.data || []);
+            const releaseApprovals = approvals.filter((a: any) => a.releaseId === releaseId);
+            const approved = releaseApprovals.filter((a: any) => a.outcome === 'APPROVED').length;
+            
+            this.promoteValidation = {
+              hasApprovals: approved >= 1,
+              approvalCount: approved,
+              hasEvidenceUrl: !!release.evidenceUrl,
+              evidenceUrl: release.evidenceUrl || '',
+              hasMinScore: release.evidenceScore >= 70,
+              score: release.evidenceScore,
+              minScore: 70,
+              canPromote: approved >= 1 && !!release.evidenceUrl && release.evidenceScore >= 70
+            };
+          }
+        });
+      }
+    });
   }
 
   closePromoteModal(): void {

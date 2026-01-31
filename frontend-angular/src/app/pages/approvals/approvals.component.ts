@@ -73,12 +73,15 @@ export class ApprovalsComponent implements OnInit {
       this.approvalService.listApprovedCurrentUser(this.skipApproved, this.limitApproved).toPromise(),
       this.approvalService.listRejectedCurrentUser(this.skipRejected, this.limitRejected).toPromise()
     ]).then(([pendingRes, approvedRes, rejectedRes]: any) => {
-      const pendingReleases = pendingRes?.data?.data || [];
+      let pendingReleases = pendingRes?.data?.data || [];
       const approvedReleases = approvedRes?.data?.data || [];
       const rejectedReleases = rejectedRes?.data?.data || [];
       
+      // Filtrar releases PROD dos pendentes (não podem ser aprovados em PROD)
+      pendingReleases = pendingReleases.filter((r: any) => r.env !== 'PROD');
+      
       // Armazenar totals
-      this.totalPending = pendingRes?.data?.total || 0;
+      this.totalPending = pendingReleases.length;
       this.totalApproved = approvedRes?.data?.total || 0;
       this.totalRejected = rejectedRes?.data?.total || 0;
       

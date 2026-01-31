@@ -132,8 +132,26 @@
           <option *ngIf="currentEnv === 'PRE_PROD'" value="PROD">PROD</option>
         </select>
       </div>
+
+      <!-- Validação para PRE_PROD -> PROD -->
+      <div *ngIf="currentEnv === 'PRE_PROD' && promoteTargetEnv === 'PROD' && promoteValidation" class="validation-section">
+        <h3>Requisitos para Promoção:</h3>
+        <div class="validation-item" [class.valid]="promoteValidation.hasApprovals" [class.invalid]="!promoteValidation.hasApprovals">
+          <span class="icon">{{ promoteValidation.hasApprovals ? '✅' : '❌' }}</span>
+          <span>Aprovações: {{ promoteValidation.approvalCount }}/1 necessária(s)</span>
+        </div>
+        <div class="validation-item" [class.valid]="promoteValidation.hasEvidenceUrl" [class.invalid]="!promoteValidation.hasEvidenceUrl">
+          <span class="icon">{{ promoteValidation.hasEvidenceUrl ? '✅' : '❌' }}</span>
+          <span>Evidence URL: {{ promoteValidation.evidenceUrl ? 'Presente' : 'Faltando' }}</span>
+        </div>
+        <div class="validation-item" [class.valid]="promoteValidation.hasMinScore" [class.invalid]="!promoteValidation.hasMinScore">
+          <span class="icon">{{ promoteValidation.hasMinScore ? '✅' : '❌' }}</span>
+          <span>Score: {{ promoteValidation.score }}/{{ promoteValidation.minScore }} mínimo</span>
+        </div>
+      </div>
+
       <div class="modal-actions">
-        <button (click)="promoteRelease()" class="btn-save">Promover</button>
+        <button (click)="promoteRelease()" [disabled]="currentEnv === 'PRE_PROD' && promoteTargetEnv === 'PROD' && promoteValidation && !promoteValidation.canPromote" class="btn-save">Promover</button>
         <button (click)="closePromoteModal()" class="btn-cancel">Cancelar</button>
       </div>
     </div>
