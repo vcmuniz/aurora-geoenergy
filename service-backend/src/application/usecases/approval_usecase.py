@@ -17,24 +17,24 @@ class ApprovalUseCase:
             notes=request.notes
         )
         self.session.commit()
-        return ApprovalResponse.model_validate(approval)
+        return ApprovalResponse.from_orm(approval)
 
     def get_by_id(self, approval_id: UUID) -> ApprovalResponse:
         approval = self.repo.get_by_id(approval_id)
         if not approval:
             raise ValueError(f"Approval {approval_id} not found")
-        return ApprovalResponse.model_validate(approval)
+        return ApprovalResponse.from_orm(approval)
 
     def list_by_release(self, release_id: UUID):
         approvals = self.repo.list_by_release(release_id)
-        return [ApprovalResponse.model_validate(a) for a in approvals]
+        return [ApprovalResponse.from_orm(a) for a in approvals]
 
     def list_pending_by_approver(self, approver_email: str):
         approvals = self.repo.list_pending_by_approver(approver_email)
-        return [ApprovalResponse.model_validate(a) for a in approvals]
+        return [ApprovalResponse.from_orm(a) for a in approvals]
 
     def get_latest_by_release(self, release_id: UUID) -> ApprovalResponse:
         approval = self.repo.get_latest_by_release(release_id)
         if not approval:
             raise ValueError(f"No approvals found for release {release_id}")
-        return ApprovalResponse.model_validate(approval)
+        return ApprovalResponse.from_orm(approval)

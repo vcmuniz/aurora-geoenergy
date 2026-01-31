@@ -30,22 +30,22 @@ class ReleaseUseCase:
         release = self.repo.get_by_id(release_id)
         if not release:
             raise ValueError(f"Release {release_id} not found")
-        return ReleaseResponse.model_validate(release)
+        return ReleaseResponse.from_orm(release)
 
     def list_by_application(self, app_id: UUID, skip: int = 0, limit: int = 100):
         releases = self.repo.list_by_application(app_id, skip, limit)
-        return [ReleaseResponse.model_validate(r) for r in releases]
+        return [ReleaseResponse.from_orm(r) for r in releases]
 
     def list_by_status(self, status: str, skip: int = 0, limit: int = 100):
         releases = self.repo.list_by_status(status, skip, limit)
-        return [ReleaseResponse.model_validate(r) for r in releases]
+        return [ReleaseResponse.from_orm(r) for r in releases]
 
     def update_status(self, release_id: UUID, status: str) -> ReleaseResponse:
         release = self.repo.update_status(release_id, status)
         if not release:
             raise ValueError(f"Release {release_id} not found")
         self.session.commit()
-        return ReleaseResponse.model_validate(release)
+        return ReleaseResponse.from_orm(release)
 
     def delete(self, release_id: UUID) -> bool:
         deleted = self.repo.delete(release_id)
