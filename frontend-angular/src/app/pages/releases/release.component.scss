@@ -15,57 +15,96 @@ h1 {
 
 .app-selector {
   margin-bottom: 40px;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 
   label {
     display: block;
-    margin-bottom: 15px;
-    font-size: 16px;
-    font-weight: 600;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 700;
     color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 }
 
 .apps-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  margin-bottom: 0;
 }
 
 .app-card {
-  background: white;
-  border: 2px solid #e0e7ff;
-  border-radius: 12px;
-  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%);
+  border: 3px solid #e0e7ff;
+  border-radius: 16px;
+  padding: 24px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+  }
 
   &:hover {
     border-color: #667eea;
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
-    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.25);
+    transform: translateY(-8px);
+    background: linear-gradient(135deg, #f0f4ff 0%, #ffffff 100%);
+
+    &::before {
+      left: 100%;
+    }
   }
 
   &.selected {
-    background-color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #5568d3 100%);
     border-color: #667eea;
     color: white;
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+    transform: translateY(-8px) scale(1.02);
+
+    &::before {
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    }
   }
 }
 
 .app-icon {
-  font-size: 32px;
-  margin-bottom: 10px;
+  font-size: 48px;
+  margin-bottom: 12px;
+  display: inline-block;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
 }
 
 .app-name {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 5px;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 8px;
   color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   .app-card.selected & {
     color: white;
@@ -73,11 +112,15 @@ h1 {
 }
 
 .app-team {
-  font-size: 12px;
+  font-size: 13px;
   color: #7f8c8d;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   .app-card.selected & {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.85);
   }
 }
 
