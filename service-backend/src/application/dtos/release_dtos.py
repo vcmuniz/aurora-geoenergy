@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -28,8 +28,12 @@ class ReleaseResponse(BaseModel):
     created_at: datetime = Field(alias='createdAt')
     deployed_at: Optional[datetime] = Field(alias='deployedAt')
     
-    @field_serializer('id')
-    def serialize_id(self, value):
-        if isinstance(value, UUID):
-            return str(value)
-        return value
+    @model_validator(mode='before')
+    @classmethod
+    def convert_ids(cls, data):
+        if isinstance(data, dict):
+            if 'id' in data and isinstance(data['id'], UUID):
+                data['id'] = str(data['id'])
+            if 'application_id' in data and isinstance(data['application_id'], UUID):
+                data['application_id'] = str(data['application_id'])
+        return data

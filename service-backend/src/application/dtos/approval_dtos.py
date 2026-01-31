@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -22,8 +22,12 @@ class ApprovalResponse(BaseModel):
     notes: Optional[str]
     created_at: datetime = Field(alias='createdAt')
     
-    @field_serializer('id')
-    def serialize_id(self, value):
-        if isinstance(value, UUID):
-            return str(value)
-        return value
+    @model_validator(mode='before')
+    @classmethod
+    def convert_ids(cls, data):
+        if isinstance(data, dict):
+            if 'id' in data and isinstance(data['id'], UUID):
+                data['id'] = str(data['id'])
+            if 'release_id' in data and isinstance(data['release_id'], UUID):
+                data['release_id'] = str(data['release_id'])
+        return data

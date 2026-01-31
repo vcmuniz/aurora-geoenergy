@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -21,8 +21,9 @@ class ApplicationResponse(BaseModel):
     repo_url: Optional[str] = Field(alias='repoUrl')
     created_at: datetime
     
-    @field_serializer('id')
-    def serialize_id(self, value):
-        if isinstance(value, UUID):
-            return str(value)
-        return value
+    @model_validator(mode='before')
+    @classmethod
+    def convert_id(cls, data):
+        if isinstance(data, dict) and 'id' in data and isinstance(data['id'], UUID):
+            data['id'] = str(data['id'])
+        return data
