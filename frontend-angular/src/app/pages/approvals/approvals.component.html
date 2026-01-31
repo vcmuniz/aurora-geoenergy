@@ -1,5 +1,5 @@
 <div class="approvals-container">
-  <h1>Aprovações Pendentes</h1>
+  <h1>Aprovações</h1>
 
   <div *ngIf="loading" class="loading">Carregando...</div>
 
@@ -7,32 +7,39 @@
     <table class="table">
       <thead>
         <tr>
-          <th>Release ID</th>
+          <th>Release</th>
+          <th>Status</th>
           <th>Resultado</th>
           <th>Criada em</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody>
-        <ng-container *ngFor="let approval of approvals">
-          <tr>
-            <td>{{ approval.releaseId }}</td>
-            <td><span [class]="'status-' + approval.outcome">{{ approval.outcome || 'PENDENTE' }}</span></td>
-            <td>{{ approval.createdAt | date: 'medium' }}</td>
-            <td>
-              <button (click)="openForm(approval)" class="btn-approve">Processar</button>
-              <button (click)="toggleExpand(approval.id)" class="btn-expand">Detalhes</button>
-            </td>
-          </tr>
-          <tr *ngIf="expandedApproval === approval.id" class="details-row">
-            <td colspan="4">
-              <div class="details">
-                <p><strong>Notas anteriores:</strong> {{ approval.notes || 'N/A' }}</p>
-                <p><strong>ID:</strong> {{ approval.id }}</p>
-              </div>
-            </td>
-          </tr>
-        </ng-container>
+        <tr *ngFor="let approval of approvals">
+          <td>{{ getReleaseVersion(approval.releaseId) }}</td>
+          <td>
+            <span [class]="'status-' + getOutcomeStatus(approval.outcome)">
+              {{ getOutcomeStatus(approval.outcome) }}
+            </span>
+          </td>
+          <td>{{ approval.outcome || '-' }}</td>
+          <td>{{ approval.createdAt | date: 'short' }}</td>
+          <td>
+            <button 
+              *ngIf="!approval.outcome"
+              (click)="openApprovalModal(approval, 'approve')" 
+              class="btn-approve">
+              Aprovar
+            </button>
+            <button 
+              *ngIf="!approval.outcome"
+              (click)="openApprovalModal(approval, 'reject')" 
+              class="btn-reject">
+              Rejeitar
+            </button>
+            <span *ngIf="approval.outcome" class="status-done">✓ Respondido</span>
+          </td>
+        </tr>
       </tbody>
     </table>
 
@@ -44,31 +51,29 @@
   </div>
 
   <div *ngIf="!loading && approvals.length === 0" class="empty">
-    Nenhuma aprovação pendente
+    Nenhuma aprovação
   </div>
 
-  <!-- Modal Form -->
-  <div *ngIf="showForm && selectedApproval" class="modal">
+  <!-- Modal para Aprovar/Rejeitar -->
+  <div *ngIf="showModal" class="modal">
     <div class="modal-content">
-      <h2>Processar Aprovação</h2>
-      <div class="release-info">
-        <p><strong>Release:</strong> {{ selectedApproval.releaseId }}</p>
-      </div>
-      <form (ngSubmit)="save()">
+      <h2>{{ modalMode === 'approve' ? 'Aprovar' : 'Rejeitar' }} Lançamento</h2>
+      <form (ngSubmit)="submitApproval()">
         <div class="form-group">
-          <label>Resultado *</label>
-          <select [(ngModel)]="formData.outcome" name="outcome" required>
-            <option [value]="'APPROVED'">Aprovado</option>
-            <option [value]="'REJECTED'">Rejeitado</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Notas</label>
-          <textarea [(ngModel)]="formData.notes" name="notes" [rows]="4"></textarea>
+          <label>Notas *</label>
+          <textarea 
+            [(ngModel)]="formData.notes" 
+            name="notes" 
+            [rows]="5"
+            placeholder="Adicione seus comentários..."></textarea>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="btn-save">Enviar</button>
-          <button type="button" (click)="closeForm()" class="btn-cancel">Cancelar</button>
+          <button 
+            type="submit" 
+            [class]="modalMode === 'approve' ? 'btn-save' : 'btn-reject'">
+            {{ modalMode === 'approve' ? 'Aprovar' : 'Rejeitar' }}
+          </button>
+          <button type="button" (click)="closeModal()" class="btn-cancel">Cancelar</button>
         </div>
       </form>
     </div>

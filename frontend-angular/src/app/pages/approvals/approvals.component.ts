@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApprovalService } from '@core/services/approval.service';
-import { Approval, ApprovalRequest } from '@shared/models/approval.model';
+import { ReleaseService } from '@core/services/release.service';
+import { Approval } from '@shared/models/approval.model';
 import { Release } from '@shared/models/release.model';
 
 @Component({
@@ -14,21 +15,24 @@ import { Release } from '@shared/models/release.model';
 })
 export class ApprovalsComponent implements OnInit {
   approvals: Approval[] = [];
+  releases: Map<string, Release> = new Map();
   loading = false;
-  showForm = false;
-  selectedApproval: Approval | null = null;
-  expandedApproval: string | null = null;
+  showModal = false;
+  modalMode: 'approve' | 'reject' = 'approve';
+  selectedApprovalId = '';
 
-  formData: ApprovalRequest = {
-    releaseId: '',
-    outcome: 'APPROVED',
-    notes: ''
+  formData = {
+    notes: '',
+    outcome: ''
   };
 
   skip = 0;
   limit = 10;
 
-  constructor(private approvalService: ApprovalService) {}
+  constructor(
+    private approvalService: ApprovalService,
+    private releaseService: ReleaseService
+  ) {}
 
   ngOnInit(): void {
     this.loadApprovals();
@@ -40,46 +44,67 @@ export class ApprovalsComponent implements OnInit {
       next: (response: any) => {
         this.approvals = response.data || [];
         this.loading = false;
+        // Carregar releases para mostrar versão
+        this.approvals.forEach(approval => {
+          if (!this.releases.has(approval.releaseId)) {
+            this.releaseService.getById(approval.releaseId).subscribe({
+              next: (res: any) => {
+                this.releases.set(approval.releaseId, res.data);
+              },
+              error: (err) => console.error('Erro ao carregar release:', err)
+            });
+          }
+        });
       },
-      error: (err: any) => {
-        console.error('Erro ao carregar:', err);
+      error: (err) => {
+        console.error('Erro ao carregar approvals:', err);
         this.loading = false;
       }
     });
   }
 
-  openForm(approval: Approval): void {
-    this.selectedApproval = approval;
+  openApprovalModal(approval: Approval, mode: 'approve' | 'reject'): void {
+    if (approval.outcome) {
+      alert('Este approval já foi respondido');
+      return;
+    }
+    
+    this.selectedApprovalId = approval.id;
+    this.modalMode = mode;
     this.formData = {
-      releaseId: approval.releaseId,
-      outcome: 'APPROVED',
-      notes: ''
+      notes: '',
+      outcome: mode === 'approve' ? 'APPROVED' : 'REJECTED'
     };
-    this.showForm = true;
+    this.showModal = true;
   }
 
-  closeForm(): void {
-    this.showForm = false;
-    this.selectedApproval = null;
+  closeModal(): void {
+    this.showModal = false;
   }
 
-  save(): void {
-    if (!this.formData.outcome) {
-      alert('Resultado é obrigatório');
+  submitApproval(): void {
+    if (!this.formData.notes.trim()) {
+      alert('Adicione uma nota');
       return;
     }
 
-    this.approvalService.approve(this.formData).subscribe({
+    const request = {
+      outcome: this.formData.outcome,
+      notes: this.formData.notes
+    };
+
+    this.approvalService.updateApprovalOutcome(this.selectedApprovalId, request).subscribe({
       next: () => {
         this.loadApprovals();
-        this.closeForm();
+        this.closeModal();
       },
-      error: (err: any) => console.error('Erro ao aprovar:', err)
+      error: (err) => console.error('Erro ao atualizar approval:', err)
     });
   }
 
-  toggleExpand(id: string): void {
-    this.expandedApproval = this.expandedApproval === id ? null : id;
+  getReleaseVersion(releaseId: string): string {
+    const release = this.releases.get(releaseId);
+    return release ? `v${release.version}` : 'Carregando...';
   }
 
   previousPage(): void {
@@ -92,5 +117,10 @@ export class ApprovalsComponent implements OnInit {
   nextPage(): void {
     this.skip += this.limit;
     this.loadApprovals();
+  }
+
+  getOutcomeStatus(outcome: string | null): string {
+    if (!outcome) return 'PENDENTE';
+    return outcome;
   }
 }

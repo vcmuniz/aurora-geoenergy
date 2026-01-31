@@ -19,10 +19,6 @@ export class ApprovalService {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 
-  approve(request: ApprovalRequest): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}`, request);
-  }
-
   create(releaseId: string, approverEmail: string, request: ApprovalRequest): Observable<any> {
     return this.http.post<any>(
       `${this.apiUrl}/${releaseId}?approver_email=${approverEmail}`,
@@ -36,5 +32,9 @@ export class ApprovalService {
 
   listPendingByApprover(approverEmail: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/approver/${approverEmail}`);
+  }
+
+  updateApprovalOutcome(approvalId: string, request: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${approvalId}`, request);
   }
 }

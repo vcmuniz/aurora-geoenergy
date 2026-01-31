@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from uuid import UUID
 from src.infrastructure.database import get_db
 from src.application.usecases.approval_usecase import ApprovalUseCase
@@ -39,6 +39,18 @@ def get_approval(approval_id: UUID, db = Depends(get_db)):
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.put("/{approval_id}", response_model=dict)
+def update_approval(approval_id: UUID, body: dict = Body(...), db = Depends(get_db)):
+    try:
+        use_case = ApprovalUseCase(db)
+        result = use_case.update_outcome(approval_id, body.get('outcome'), body.get('notes'))
+        return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 

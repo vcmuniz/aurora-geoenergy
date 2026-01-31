@@ -36,3 +36,15 @@ class ApprovalUseCase:
     def list_pending_by_approver(self, approver_email: str):
         approvals = self.repo.list_pending_by_approver(approver_email)
         return [ApprovalResponse.from_orm(a) for a in approvals]
+
+    def update_outcome(self, approval_id: UUID, outcome: str, notes: str = None) -> ApprovalResponse:
+        approval = self.repo.get_by_id(approval_id)
+        if not approval:
+            raise ValueError(f"Approval {approval_id} not found")
+        
+        approval.outcome = outcome
+        if notes:
+            approval.notes = notes
+        
+        self.session.commit()
+        return ApprovalResponse.from_orm(approval)

@@ -398,3 +398,56 @@ h1 {
     transform: translateY(-2px);
   }
 }
+
+.btn-approve, .btn-reject {
+  padding: 8px 16px;
+  margin-right: 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-approve {
+  background-color: #10b981;
+  color: white;
+
+  &:hover {
+    background-color: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+}
+
+.btn-reject {
+  background-color: #ef4444;
+  color: white;
+
+  &:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+}
+
+.status-done {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.status-PENDENTE {
+  background-color: #fbbf24;
+  color: #78350f;
+}
+
+.status-APPROVED {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-REJECTED {
+  background-color: #fee2e2;
+  color: #7f1d1d;
+}
