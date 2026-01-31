@@ -64,6 +64,7 @@ services:
       - ./service-backend/src:/app/src
       - ./service-backend/main.py:/app/main.py
       - ./service-backend/migrations:/app/migrations
+      - ./service-backend/tests:/app/tests
     depends_on:
       postgres:
         condition: service_healthy
