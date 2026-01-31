@@ -13,6 +13,7 @@ class ReleaseRequest(BaseModel):
     application_id: str = Field(alias='applicationId')
     evidence_url: Optional[str] = Field(None, alias='evidenceUrl')
     evidence_score: Optional[int] = Field(None, alias='evidenceScore')
+    version_row: Optional[int] = Field(None, alias='versionRow')
     actor: Optional[str] = None
 
 

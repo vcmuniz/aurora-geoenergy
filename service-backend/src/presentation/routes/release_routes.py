@@ -93,7 +93,11 @@ def update_release(release_id: UUID, request: ReleaseRequest, db = Depends(get_d
         result = use_case.update(release_id, request)
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        error_msg = str(e)
+        # Retornar 409 para conflitos de versão
+        if "Conflict:" in error_msg:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=error_msg)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_msg)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -147,8 +151,11 @@ def get_release_timeline(release_id: UUID, authorization: str = Header(None), db
 
 
 @router.post("/{release_id}/promote", response_model=dict)
-def promote_release(release_id: UUID, body: dict = Body(...), db = Depends(get_db), authorization: str = Header(None)):
+def promote_release(release_id: UUID, body: dict = Body(...), db = Depends(get_db), authorization: str = Header(None), idempotency_key: str = Header(None)):
     try:
+        from src.infrastructure.repositories.idempotency_key_repository import IdempotencyKeyRepository
+        import json
+        
         target_env = body.get('targetEnv')
         token_payload = extract_user_from_token(authorization)
         actor_email = token_payload.email
@@ -156,17 +163,39 @@ def promote_release(release_id: UUID, body: dict = Body(...), db = Depends(get_d
         if not target_env:
             raise ValueError("targetEnv é obrigatório")
         
+        # IDEMPOTENCY: Verificar se requisição já foi processada
+        idempotency_repo = IdempotencyKeyRepository(db)
+        if idempotency_key:
+            existing = idempotency_repo.get_by_key(idempotency_key)
+            if existing:
+                # Retornar resposta anterior
+                return json.loads(existing.response_body)
+        
         use_case = ReleaseUseCase(db, actor_email)
         
         # Promote release (updates environment in place, not creating new)
         promoted_release = use_case.promote(release_id, target_env)
         
-        return ApiResponse.success_response({
+        response_data = {
             'releaseId': str(release_id),
             'version': promoted_release.model_dump(by_alias=True)['version'],
             'targetEnv': target_env,
             'status': 'PENDING'
-        }, None).model_dump()
+        }
+        
+        response = ApiResponse.success_response(response_data, None).model_dump()
+        
+        # IDEMPOTENCY: Armazenar resposta
+        if idempotency_key:
+            idempotency_repo.create(
+                key=idempotency_key,
+                request_method="POST",
+                request_path=f"/releases/{release_id}/promote",
+                response_body=response,
+                status_code="200"
+            )
+        
+        return response
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:

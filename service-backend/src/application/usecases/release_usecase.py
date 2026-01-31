@@ -173,6 +173,10 @@ class ReleaseUseCase:
         if not release:
             raise ValueError(f"Release {release_id} not found")
         
+        # OPTIMISTIC LOCKING: Validar versionRow se fornecido
+        if request.version_row is not None and release.version_row != request.version_row:
+            raise ValueError(f"Conflict: Release was modified (version {release.version_row} != {request.version_row})")
+        
         # Carregar nome da aplicação
         application = self.app_repo.get_by_id(release.application_id)
         app_name = application.name if application else "Unknown"
@@ -187,6 +191,7 @@ class ReleaseUseCase:
         release.env = request.environment
         release.evidence_url = request.evidence_url
         release.evidence_score = evidence_score
+        release.version_row = (release.version_row or 0) + 1
         
         self.session.add(release)
         
