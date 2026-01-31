@@ -5,7 +5,7 @@ const express_1 = require("express");
 const AuthController_1 = require("../controllers/AuthController");
 function createAuthRoutes(backendClient) {
     const router = (0, express_1.Router)();
-    const authController = new AuthController_1.AuthController(new (require('../../application/usecases/AuthUseCase').AuthUseCase)(backendClient));
+    const authController = new AuthController_1.AuthController(new (require('@application/usecases/AuthUseCase').AuthUseCase)(backendClient));
     /**
      * @swagger
      * /api/auth/login:

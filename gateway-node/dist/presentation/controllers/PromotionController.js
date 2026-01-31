@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PromotionController = void 0;
-const logger_1 = require("../../core/logger");
-const utils_1 = require("../../core/utils");
+const logger_1 = require("@core/logger");
+const utils_1 = require("@core/utils");
 class PromotionController {
     constructor(promotionUseCase) {
         this.promotionUseCase = promotionUseCase;

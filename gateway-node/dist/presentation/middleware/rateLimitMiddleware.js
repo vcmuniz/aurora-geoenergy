@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.rateLimitByUser = exports.rateLimitByIp = void 0;
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
-const config_1 = require("../../core/config");
+const config_1 = require("@core/config");
 const config = (0, config_1.getConfig)();
 exports.rateLimitByIp = (0, express_rate_limit_1.default)({
     windowMs: config.rateLimitWindow,

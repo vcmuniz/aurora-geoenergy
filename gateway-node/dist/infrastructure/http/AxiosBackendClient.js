@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AxiosBackendClient = void 0;
 const axios_1 = __importDefault(require("axios"));
-const exceptions_1 = require("../../domain/exceptions");
-const logger_1 = require("../../core/logger");
+const exceptions_1 = require("@domain/exceptions");
+const logger_1 = require("@core/logger");
 class AxiosBackendClient {
     constructor(baseURL = process.env.BACKEND_URL || 'http://localhost:8000') {
         this.client = axios_1.default.create({
