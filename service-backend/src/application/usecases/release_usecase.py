@@ -12,19 +12,19 @@ class ReleaseUseCase:
     def create(self, request: ReleaseRequest) -> ReleaseResponse:
         app_id = UUID(request.application_id)
         
-        existing = self.repo.get_by_app_version_env(app_id, request.version, request.env)
+        existing = self.repo.get_by_app_version_env(app_id, request.version, request.environment)
         if existing:
-            raise ValueError(f"Release {request.version} for env {request.env} already exists")
+            raise ValueError(f"Release {request.version} for env {request.environment} already exists")
         
         release = self.repo.create(
             application_id=app_id,
             version=request.version,
-            env=request.env,
+            env=request.environment,
             evidence_url=request.evidence_url,
             evidence_score=request.evidence_score or 0
         )
         self.session.commit()
-        return ReleaseResponse.model_validate(release)
+        return ReleaseResponse.from_orm(release)
 
     def get_by_id(self, release_id: UUID) -> ReleaseResponse:
         release = self.repo.get_by_id(release_id)

@@ -13,6 +13,74 @@ h1 {
   color: #2c3e50;
 }
 
+.app-selector {
+  margin-bottom: 40px;
+
+  label {
+    display: block;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+}
+
+.apps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.app-card {
+  background: white;
+  border: 2px solid #e0e7ff;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    border-color: #667eea;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+    transform: translateY(-4px);
+  }
+
+  &.selected {
+    background-color: #667eea;
+    border-color: #667eea;
+    color: white;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  }
+}
+
+.app-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.app-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #2c3e50;
+
+  .app-card.selected & {
+    color: white;
+  }
+}
+
+.app-team {
+  font-size: 12px;
+  color: #7f8c8d;
+
+  .app-card.selected & {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
 .btn-new {
   background-color: #667eea;
   color: white;

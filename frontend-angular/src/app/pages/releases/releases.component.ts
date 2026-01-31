@@ -70,6 +70,12 @@ export class ReleasesComponent implements OnInit {
     this.loadReleases();
   }
 
+  selectApp(appId: string): void {
+    this.selectedAppId = appId;
+    this.skip = 0;
+    this.loadReleases();
+  }
+
   openForm(): void {
     this.formData = {
       applicationId: this.selectedAppId,
