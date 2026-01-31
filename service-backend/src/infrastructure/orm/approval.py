@@ -10,10 +10,8 @@ class ApprovalORM(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     release_id = Column(UUID(as_uuid=True), ForeignKey("releases.id", ondelete="CASCADE"), nullable=False, index=True)
     approver_email = Column(String(255), nullable=False, index=True)
-    outcome = Column(String(50), nullable=False)
+    outcome = Column(String(50), nullable=True)
     notes = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    __table_args__ = (
-        CheckConstraint("outcome IN ('APPROVED', 'REJECTED')", name="ck_approval_outcome"),
-    )
+    __table_args__ = ()

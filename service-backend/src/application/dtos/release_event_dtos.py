@@ -4,21 +4,14 @@ from datetime import datetime
 from uuid import UUID
 
 
-class ApprovalRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-    
-    approver_email: str = Field(alias='approverEmail')
-    outcome: Optional[str] = None
-    notes: Optional[str] = None
-
-
-class ApprovalResponse(BaseModel):
+class ReleaseEventResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
     
     id: str
     release_id: str = Field(alias='releaseId')
-    approver_email: Optional[str] = Field(None, alias='approverEmail')
-    outcome: Optional[str] = None
+    event_type: str = Field(alias='eventType')
+    status: str
+    actor_email: Optional[str] = Field(None, alias='actorEmail')
     notes: Optional[str] = None
     created_at: datetime = Field(alias='createdAt')
     
@@ -31,13 +24,14 @@ class ApprovalResponse(BaseModel):
     
     @staticmethod
     def from_orm(obj):
-        """Convert ORM object to Response DTO, handling UUID conversion"""
+        """Convert ORM object to Response DTO"""
         data = {
             'id': str(obj.id) if isinstance(obj.id, UUID) else obj.id,
             'release_id': str(obj.release_id) if isinstance(obj.release_id, UUID) else obj.release_id,
-            'approver_email': obj.approver_email if hasattr(obj, 'approver_email') else None,
-            'outcome': obj.outcome,
+            'event_type': obj.event_type,
+            'status': obj.status,
+            'actor_email': obj.actor_email,
             'notes': obj.notes,
             'created_at': obj.created_at
         }
-        return ApprovalResponse(**data)
+        return ReleaseEventResponse(**data)

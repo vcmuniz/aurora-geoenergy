@@ -21,6 +21,10 @@ export class ReleaseService {
     return this.http.get<any>(`${this.apiUrl}/application/${appId}?skip=${skip}&limit=${limit}`);
   }
 
+  listAll(skip: number = 0, limit: number = 100): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}?skip=${skip}&limit=${limit}`);
+  }
+
   getById(id: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
@@ -43,5 +47,9 @@ export class ReleaseService {
 
   getTimeline(id: string): Observable<ReleaseTimeline> {
     return this.http.get<ReleaseTimeline>(`${this.apiUrl}/${id}/timeline`);
+  }
+
+  promote(releaseId: string, targetEnv: string, actor: string = 'system'): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${releaseId}/promote`, { targetEnv, actor });
   }
 }

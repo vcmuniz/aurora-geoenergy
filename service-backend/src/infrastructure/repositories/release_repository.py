@@ -42,10 +42,20 @@ class ReleaseRepository:
             ReleaseORM.status == status
         ).offset(skip).limit(limit).all()
 
+    def list_all(self, skip: int = 0, limit: int = 100):
+        return self.session.query(ReleaseORM).offset(skip).limit(limit).all()
+
     def update_status(self, release_id: UUID, status: str) -> ReleaseORM:
         release = self.get_by_id(release_id)
         if release:
             release.status = status
+            self.session.flush()
+        return release
+
+    def update_environment(self, release_id: UUID, new_env: str) -> ReleaseORM:
+        release = self.get_by_id(release_id)
+        if release:
+            release.env = new_env
             self.session.flush()
         return release
 

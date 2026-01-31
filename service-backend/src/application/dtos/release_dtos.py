@@ -13,6 +13,7 @@ class ReleaseRequest(BaseModel):
     application_id: str = Field(alias='applicationId')
     evidence_url: Optional[str] = Field(None, alias='evidenceUrl')
     evidence_score: Optional[int] = Field(None, alias='evidenceScore')
+    actor: Optional[str] = None
 
 
 class ReleaseResponse(BaseModel):
@@ -21,10 +22,14 @@ class ReleaseResponse(BaseModel):
     id: str
     version: str
     environment: str = Field(alias='env')
-    notes: Optional[str] = None
     status: str = "DRAFT"
     application_id: str = Field(alias='applicationId')
+    evidence_url: Optional[str] = Field(None, alias='evidenceUrl')
+    evidence_score: int = Field(default=0, alias='evidenceScore')
+    version_row: int = Field(default=0, alias='versionRow')
+    deployed_at: Optional[datetime] = Field(None, alias='deployedAt')
     created_at: datetime = Field(alias='createdAt')
+    notes: Optional[str] = None
     
     @field_validator('id', 'application_id', mode='before')
     @classmethod
@@ -40,9 +45,13 @@ class ReleaseResponse(BaseModel):
             'id': str(obj.id) if isinstance(obj.id, UUID) else obj.id,
             'version': obj.version,
             'environment': obj.env,
-            'notes': getattr(obj, 'notes', None),
             'status': getattr(obj, 'status', 'DRAFT'),
             'application_id': str(obj.application_id) if isinstance(obj.application_id, UUID) else obj.application_id,
-            'created_at': obj.created_at
+            'evidence_url': getattr(obj, 'evidence_url', None),
+            'evidence_score': getattr(obj, 'evidence_score', 0),
+            'version_row': getattr(obj, 'version_row', 0),
+            'deployed_at': getattr(obj, 'deployed_at', None),
+            'created_at': obj.created_at,
+            'notes': getattr(obj, 'notes', None)
         }
         return ReleaseResponse(**data)

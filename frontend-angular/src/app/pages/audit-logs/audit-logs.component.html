@@ -1,0 +1,122 @@
+<div class="audit-container">
+  <h1>📋 Auditoria</h1>
+
+  <div *ngIf="loading" class="loading">Carregando...</div>
+
+  <div *ngIf="!loading && auditLogs.length > 0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Ação</th>
+          <th>Descrição</th>
+          <th>Aplicação</th>
+          <th>Usuário</th>
+          <th>Data e Hora</th>
+          <th>Detalhes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of auditLogs">
+          <td>
+            <span [class]="'action-badge action-' + getActionColor(log.action)">
+              {{ getActionLabel(log.action) }}
+            </span>
+          </td>
+          <td>
+            <strong>{{ getActionDescription(log) }}</strong>
+          </td>
+          <td>{{ log.payload?.application_name || '-' }}</td>
+          <td>{{ log.actor }}</td>
+          <td>{{ log.createdAt | date: 'short' }}</td>
+          <td>
+            <button (click)="openDetailsModal(log)" class="btn-details">Detalhes</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button (click)="previousPage()" [disabled]="skip === 0">← Anterior</button>
+      <span>Página {{ (skip / limit) + 1 }}</span>
+      <button (click)="nextPage()">Próxima →</button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && auditLogs.length === 0" class="empty">
+    Nenhuma auditoria registrada
+  </div>
+
+  <!-- Details Modal -->
+  <div *ngIf="showDetailsModal && selectedLog" class="modal" (click)="closeDetailsModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>📋 Detalhes da Auditoria</h2>
+      <button (click)="closeDetailsModal()" class="btn-close" title="Fechar">✕</button>
+      
+      <div class="details-summary">
+        <div class="summary-item">
+          <span class="summary-label">O que aconteceu:</span>
+          <span class="summary-text">{{ getActionDescription(selectedLog) }}</span>
+        </div>
+        <div class="summary-item" *ngIf="selectedLog.payload?.application_name">
+          <span class="summary-label">Aplicação:</span>
+          <span class="summary-version">{{ selectedLog.payload.application_name }}</span>
+        </div>
+        <div class="summary-item" *ngIf="selectedLog.payload?.version">
+          <span class="summary-label">Versão:</span>
+          <span class="summary-version">v{{ selectedLog.payload.version }}</span>
+        </div>
+        <div class="summary-item" *ngIf="selectedLog.payload?.environment">
+          <span class="summary-label">Ambiente:</span>
+          <span class="summary-env">{{ selectedLog.payload.environment }}</span>
+        </div>
+        <div class="summary-item" *ngIf="selectedLog.payload?.from_env && selectedLog.payload?.to_env">
+          <span class="summary-label">Promoção:</span>
+          <span class="summary-env">{{ selectedLog.payload.from_env }} → {{ selectedLog.payload.to_env }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Quem fez:</span>
+          <span class="summary-email">{{ selectedLog.actor }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Quando:</span>
+          <span class="summary-text">{{ selectedLog.createdAt | date: 'medium' }}</span>
+        </div>
+      </div>
+
+      <hr />
+
+      <div class="details-grid">
+        <div class="detail-item">
+          <label>Tipo de Ação:</label>
+          <span [class]="'action-badge action-' + getActionColor(selectedLog.action)">
+            {{ getActionLabel(selectedLog.action) }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <label>Recurso Afetado:</label>
+          <strong>{{ selectedLog.entity }}</strong>
+        </div>
+        <div class="detail-item full-width">
+          <label>ID do Log:</label>
+          <code>{{ selectedLog.id }}</code>
+        </div>
+        <div class="detail-item full-width">
+          <label>ID do Recurso:</label>
+          <code>{{ selectedLog.entityId }}</code>
+        </div>
+        <div class="detail-item full-width" *ngIf="selectedLog.requestId">
+          <label>Request ID:</label>
+          <code>{{ selectedLog.requestId }}</code>
+        </div>
+        <div class="detail-item full-width" *ngIf="selectedLog.payload">
+          <label>📊 Dados Adicionais:</label>
+          <pre><code>{{ selectedLog.payload | json }}</code></pre>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button (click)="closeDetailsModal()" class="btn-cancel">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>

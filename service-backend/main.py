@@ -5,6 +5,7 @@ from src.presentation.controllers.auth_controller import router as auth_router
 from src.presentation.routes.application_routes import router as application_router
 from src.presentation.routes.release_routes import router as release_router
 from src.presentation.routes.approval_routes import router as approval_router
+from src.presentation.routes.audit_log_routes import router as audit_log_router
 
 app = FastAPI(
     title="Aurora Release Management API",
@@ -22,6 +23,7 @@ app.include_router(auth_router)
 app.include_router(application_router)
 app.include_router(release_router)
 app.include_router(approval_router)
+app.include_router(audit_log_router)
 
 @app.get("/health", tags=["Health"])
 async def health_check():

@@ -34,6 +34,20 @@ export class ApprovalService {
     return this.http.get<any>(`${this.apiUrl}/approver/${approverEmail}`);
   }
 
+  approve(releaseId: string, approverEmail: string, notes?: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/${releaseId}/approve`,
+      { approverEmail, notes: notes || '' }
+    );
+  }
+
+  reject(releaseId: string, approverEmail: string, notes?: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/${releaseId}/reject`,
+      { approverEmail, notes: notes || '' }
+    );
+  }
+
   updateApprovalOutcome(approvalId: string, request: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${approvalId}`, request);
   }

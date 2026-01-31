@@ -1,79 +1,99 @@
 <div class="approvals-container">
-  <h1>Aprovações</h1>
+  <div class="header-section">
+    <h1>Aprovações</h1>
+    <div class="user-info">
+      <span class="user-label">Usuário:</span>
+      <span class="user-email">{{ currentUser }}</span>
+    </div>
+  </div>
+
+  <div class="filter-buttons">
+    <button 
+      [class.active]="selectedFilter === 'pendentes'"
+      (click)="setFilter('pendentes')"
+      class="filter-btn">
+      ⏳ Pendentes
+    </button>
+    <button 
+      [class.active]="selectedFilter === 'aprovados'"
+      (click)="setFilter('aprovados')"
+      class="filter-btn">
+      ✓ Aprovados
+    </button>
+    <button 
+      [class.active]="selectedFilter === 'rejeitados'"
+      (click)="setFilter('rejeitados')"
+      class="filter-btn">
+      ✗ Rejeitados
+    </button>
+  </div>
 
   <div *ngIf="loading" class="loading">Carregando...</div>
 
-  <div *ngIf="!loading && approvals.length > 0">
+  <div *ngIf="!loading && displayedApprovals.length > 0">
     <table class="table">
       <thead>
         <tr>
+          <th>Aplicação</th>
           <th>Release</th>
-          <th>Status</th>
-          <th>Resultado</th>
+          <th>Ambiente</th>
           <th>Criada em</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let approval of approvals">
-          <td>{{ getReleaseVersion(approval.releaseId) }}</td>
-          <td>
-            <span [class]="'status-' + getOutcomeStatus(approval.outcome)">
-              {{ getOutcomeStatus(approval.outcome) }}
-            </span>
-          </td>
-          <td>{{ approval.outcome || '-' }}</td>
-          <td>{{ approval.createdAt | date: 'short' }}</td>
+        <tr *ngFor="let approval of displayedApprovals">
+          <td><strong>{{ approval.application?.name || 'Carregando...' }}</strong></td>
+          <td>{{ getReleaseVersion(approval.release) }}</td>
+          <td>{{ approval.release.env }}</td>
+          <td>{{ approval.release.createdAt | date: 'short' }}</td>
           <td>
             <button 
-              *ngIf="!approval.outcome"
+              *ngIf="selectedFilter === 'pendentes'"
               (click)="openApprovalModal(approval, 'approve')" 
               class="btn-approve">
               Aprovar
             </button>
             <button 
-              *ngIf="!approval.outcome"
+              *ngIf="selectedFilter === 'pendentes'"
               (click)="openApprovalModal(approval, 'reject')" 
               class="btn-reject">
               Rejeitar
             </button>
-            <span *ngIf="approval.outcome" class="status-done">✓ Respondido</span>
+            <span *ngIf="selectedFilter !== 'pendentes'" class="status-done">✓ Respondido</span>
           </td>
         </tr>
       </tbody>
     </table>
-
-    <div class="pagination">
-      <button (click)="previousPage()" [disabled]="skip === 0">← Anterior</button>
-      <span>Página {{ (skip / limit) + 1 }}</span>
-      <button (click)="nextPage()">Próxima →</button>
-    </div>
   </div>
 
-  <div *ngIf="!loading && approvals.length === 0" class="empty">
-    Nenhuma aprovação
+  <div *ngIf="!loading && displayedApprovals.length === 0" class="empty">
+    Nenhuma aprovação nesta categoria
   </div>
 
   <!-- Modal para Aprovar/Rejeitar -->
   <div *ngIf="showModal" class="modal">
     <div class="modal-content">
-      <h2>{{ modalMode === 'approve' ? 'Aprovar' : 'Rejeitar' }} Lançamento</h2>
+      <h2>{{ modalMode === 'approve' ? '✓ Aprovar' : '✗ Rejeitar' }} Lançamento</h2>
       <form (ngSubmit)="submitApproval()">
         <div class="form-group">
-          <label>Notas *</label>
+          <label>Comentários e Notas *</label>
           <textarea 
             [(ngModel)]="formData.notes" 
             name="notes" 
-            [rows]="5"
-            placeholder="Adicione seus comentários..."></textarea>
+            placeholder="Descreva o motivo da sua decisão, feedback, ou observações importantes..."></textarea>
+          <small class="form-hint">
+            {{ formData.notes.length || 0 }} caracteres
+            <span *ngIf="formData.notes.length > 0" class="hint-success">✓</span>
+          </small>
         </div>
         <div class="modal-actions">
+          <button type="button" (click)="closeModal()" class="btn-cancel">Cancelar</button>
           <button 
             type="submit" 
             [class]="modalMode === 'approve' ? 'btn-save' : 'btn-reject'">
-            {{ modalMode === 'approve' ? 'Aprovar' : 'Rejeitar' }}
+            {{ modalMode === 'approve' ? '✓ Aprovar' : '✗ Rejeitar' }}
           </button>
-          <button type="button" (click)="closeModal()" class="btn-cancel">Cancelar</button>
         </div>
       </form>
     </div>

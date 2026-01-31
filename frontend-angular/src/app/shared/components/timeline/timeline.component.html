@@ -1,0 +1,22 @@
+<div class="timeline">
+  <div *ngIf="!events || events.length === 0" class="empty">
+    Sem eventos de timeline
+  </div>
+
+  <div *ngFor="let event of events; let last = last" class="timeline-item" [class.last]="last">
+    <div class="timeline-marker" [class]="'status-' + getStatusColor(event.status)">
+      <span class="icon">{{ getEventIcon(event.eventType) }}</span>
+    </div>
+    <div class="timeline-content">
+      <div class="event-header">
+        <h3>{{ event.eventType }}</h3>
+        <span class="status-badge" [class]="'badge-' + getStatusColor(event.status)">
+          {{ event.status }}
+        </span>
+      </div>
+      <p class="event-time">{{ event.createdAt | date: 'short' }}</p>
+      <p *ngIf="event.actorEmail" class="event-actor">Por: {{ event.actorEmail }}</p>
+      <p *ngIf="event.notes" class="event-notes">{{ event.notes }}</p>
+    </div>
+  </div>
+</div>

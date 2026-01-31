@@ -4,9 +4,8 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ApplicationsComponent } from './pages/applications/applications.component';
 import { ReleasesComponent } from './pages/releases/releases.component';
 import { ApprovalsComponent } from './pages/approvals/approvals.component';
-import { AuditComponent } from './pages/audit/audit.component';
+import { AuditLogsComponent } from './pages/audit-logs/audit-logs.component';
 import { authGuard } from './core/guards/auth.guard';
-import { adminGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -15,6 +14,6 @@ export const routes: Routes = [
   { path: 'applications', component: ApplicationsComponent, canActivate: [authGuard] },
   { path: 'releases', component: ReleasesComponent, canActivate: [authGuard] },
   { path: 'approvals', component: ApprovalsComponent, canActivate: [authGuard] },
-  { path: 'audit', component: AuditComponent, canActivate: [authGuard, adminGuard] },
+  { path: 'audit-logs', component: AuditLogsComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: 'login' }
 ];

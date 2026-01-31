@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from uuid import UUID
 from src.infrastructure.database import get_db
 from src.application.usecases.release_usecase import ReleaseUseCase
+from src.application.usecases.release_event_usecase import ReleaseEventUseCase
 from src.application.dtos.release_dtos import ReleaseRequest, ReleaseResponse
 from src.application.dtos.api_response import ApiResponse
 
@@ -11,11 +12,23 @@ router = APIRouter(prefix="/releases", tags=["Releases"])
 @router.post("", response_model=dict)
 def create_release(request: ReleaseRequest, db = Depends(get_db)):
     try:
-        use_case = ReleaseUseCase(db)
+        actor_email = getattr(request, 'actor', None) or 'system'
+        use_case = ReleaseUseCase(db, actor_email)
         result = use_case.create(request)
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.get("", response_model=dict)
+def list_all_releases(skip: int = 0, limit: int = 100, db = Depends(get_db)):
+    try:
+        use_case = ReleaseUseCase(db)
+        results = use_case.list_all(skip, limit)
+        dtos = [r.model_dump(by_alias=True) for r in results]
+        return ApiResponse.success_response(dtos, None).model_dump()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -65,3 +78,41 @@ def delete_release(release_id: UUID, db = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.get("/{release_id}/timeline", response_model=dict)
+def get_release_timeline(release_id: UUID, db = Depends(get_db)):
+    try:
+        use_case = ReleaseEventUseCase(db)
+        events = use_case.get_timeline(release_id)
+        dtos = [e.model_dump(by_alias=True) for e in events]
+        return ApiResponse.success_response(dtos, None).model_dump()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/{release_id}/promote", response_model=dict)
+def promote_release(release_id: UUID, body: dict = Body(...), db = Depends(get_db)):
+    try:
+        target_env = body.get('targetEnv')
+        actor_email = body.get('actor') or 'system'
+        
+        if not target_env:
+            raise ValueError("targetEnv é obrigatório")
+        
+        use_case = ReleaseUseCase(db, actor_email)
+        
+        # Promote release (updates environment in place, not creating new)
+        promoted_release = use_case.promote(release_id, target_env)
+        
+        return ApiResponse.success_response({
+            'releaseId': str(release_id),
+            'version': promoted_release.model_dump(by_alias=True)['version'],
+            'targetEnv': target_env,
+            'status': 'PENDING'
+        }, None).model_dump()
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+

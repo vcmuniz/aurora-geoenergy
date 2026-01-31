@@ -26,6 +26,7 @@
         <th>Ambiente</th>
         <th>Status</th>
         <th>Score</th>
+        <th>Aprovações</th>
         <th>Criada em</th>
         <th>Ações</th>
       </tr>
@@ -35,9 +36,24 @@
         <td>{{ release.version }}</td>
         <td>{{ release.env }}</td>
         <td><span [class]="'status-' + release.status">{{ release.status }}</span></td>
-        <td>{{ release.evidenceScore }}%</td>
+        <td>
+          <div class="score-badge">
+            <strong>{{ release.evidenceScore }}%</strong>
+            <div class="score-bar">
+              <div class="score-fill" [style.width.%]="release.evidenceScore"></div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="approval-counts">
+            <span class="approved">✓ {{ getApprovalCounts(release.id).approved }}</span>
+            <span class="rejected">✗ {{ getApprovalCounts(release.id).rejected }}</span>
+          </div>
+        </td>
         <td>{{ release.createdAt | date: 'short' }}</td>
         <td>
+          <button (click)="loadTimeline(release.id)" class="btn-timeline">Timeline</button>
+          <button (click)="openPromoteModal(release.id, release.env)" class="btn-promote">Promover</button>
           <button (click)="delete(release.id)" class="btn-delete">Deletar</button>
         </td>
       </tr>
@@ -84,6 +100,35 @@
           <button type="button" (click)="closeForm()" class="btn-cancel">Cancelar</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Timeline Modal -->
+  <div *ngIf="selectedReleaseId" class="modal" (click)="closeTimeline()">
+    <div class="modal-content modal-timeline" (click)="$event.stopPropagation()">
+      <h2>Timeline do Release</h2>
+      <button (click)="closeTimeline()" class="btn-close" title="Fechar">✕</button>
+      <app-timeline [events]="timeline"></app-timeline>
+    </div>
+  </div>
+
+  <!-- Promote Modal -->
+  <div *ngIf="showPromoteModal" class="modal" (click)="closePromoteModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Promover Release</h2>
+      <button (click)="closePromoteModal()" class="btn-close" title="Fechar">✕</button>
+      <p style="color: #7f8c8d; margin-bottom: 20px;">Ambiente atual: <strong style="color: #2c3e50;">{{ currentEnv }}</strong></p>
+      <div class="form-group">
+        <label>Ambiente Destino:</label>
+        <select [(ngModel)]="promoteTargetEnv" name="targetEnv">
+          <option *ngIf="currentEnv === 'DEV'" value="PRE_PROD">PRE_PROD</option>
+          <option *ngIf="currentEnv === 'PRE_PROD'" value="PROD">PROD</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button (click)="promoteRelease()" class="btn-save">Promover</button>
+        <button (click)="closePromoteModal()" class="btn-cancel">Cancelar</button>
+      </div>
     </div>
   </div>
 </div>

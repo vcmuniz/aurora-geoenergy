@@ -3,22 +3,33 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReleaseService } from '@core/services/release.service';
 import { ApplicationService } from '@core/services/application.service';
+import { ApprovalService } from '@core/services/approval.service';
+import { ReleaseTimelineService } from '@core/services/release-timeline.service';
+import { TimelineComponent } from '@shared/components/timeline/timeline.component';
 import { Release, ReleaseRequest } from '@shared/models/release.model';
 import { Application } from '@shared/models/application.model';
 
 @Component({
   selector: 'app-releases',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TimelineComponent],
   templateUrl: './releases.component.html',
   styleUrls: ['./releases.component.scss']
 })
 export class ReleasesComponent implements OnInit {
   releases: Release[] = [];
   applications: Application[] = [];
+  approvalCounts: Map<string, { approved: number; rejected: number }> = new Map();
   loading = false;
   showForm = false;
   selectedAppId = '';
+  selectedReleaseId: string | null = null;
+  timeline: any[] = [];
+  showPromoteModal = false;
+  promoteReleaseId: string | null = null;
+  currentEnv: string = '';
+  promoteTargetEnv: string = '';
+  currentUser = 'approver@company.co'; // TODO: get from auth
 
   formData: ReleaseRequest = {
     applicationId: '',
@@ -33,7 +44,9 @@ export class ReleasesComponent implements OnInit {
 
   constructor(
     private releaseService: ReleaseService,
-    private appService: ApplicationService
+    private appService: ApplicationService,
+    private approvalService: ApprovalService,
+    private timelineService: ReleaseTimelineService
   ) {}
 
   ngOnInit(): void {
@@ -57,12 +70,34 @@ export class ReleasesComponent implements OnInit {
       next: (response: any) => {
         this.releases = response.data || [];
         this.loading = false;
+        // Carregar contagem de aprovações para cada release
+        this.releases.forEach(release => {
+          this.loadApprovalCounts(release.id);
+        });
       },
       error: (err) => {
         console.error('Erro ao carregar releases:', err);
         this.loading = false;
       }
     });
+  }
+
+  loadApprovalCounts(releaseId: string): void {
+    this.approvalService.list(0, 100).subscribe({
+      next: (response: any) => {
+        const approvals = response.data || [];
+        const releaseApprovals = approvals.filter((a: any) => a.releaseId === releaseId);
+        const approved = releaseApprovals.filter((a: any) => a.outcome === 'APPROVED').length;
+        const rejected = releaseApprovals.filter((a: any) => a.outcome === 'REJECTED').length;
+        
+        this.approvalCounts.set(releaseId, { approved, rejected });
+      },
+      error: (err) => console.error('Erro ao carregar contagem de aprovações:', err)
+    });
+  }
+
+  getApprovalCounts(releaseId: string): { approved: number; rejected: number } {
+    return this.approvalCounts.get(releaseId) || { approved: 0, rejected: 0 };
   }
 
   onAppChange(): void {
@@ -92,6 +127,7 @@ export class ReleasesComponent implements OnInit {
     }
 
     this.formData.applicationId = this.selectedAppId;
+    this.formData.actor = this.currentUser;
     this.releaseService.create(this.formData).subscribe({
       next: () => {
         this.loadReleases();
@@ -120,5 +156,56 @@ export class ReleasesComponent implements OnInit {
   nextPage(): void {
     this.skip += this.limit;
     this.loadReleases();
+  }
+
+  loadTimeline(releaseId: string): void {
+    this.selectedReleaseId = releaseId;
+    this.timelineService.getTimeline(releaseId).subscribe({
+      next: (response: any) => {
+        this.timeline = response.data || [];
+      },
+      error: (err: any) => {
+        console.error('Erro ao carregar timeline:', err);
+        this.timeline = [];
+      }
+    });
+  }
+
+  closeTimeline(): void {
+    this.selectedReleaseId = null;
+    this.timeline = [];
+  }
+
+  openPromoteModal(releaseId: string, env: string): void {
+    this.promoteReleaseId = releaseId;
+    this.currentEnv = env;
+    this.showPromoteModal = true;
+    this.promoteTargetEnv = env === 'DEV' ? 'PRE_PROD' : env === 'PRE_PROD' ? 'PROD' : '';
+  }
+
+  closePromoteModal(): void {
+    this.showPromoteModal = false;
+    this.promoteReleaseId = null;
+    this.currentEnv = '';
+    this.promoteTargetEnv = '';
+  }
+
+  promoteRelease(): void {
+    if (!this.promoteReleaseId || !this.promoteTargetEnv) {
+      console.error('Release ID or target env missing');
+      return;
+    }
+
+    this.releaseService.promote(this.promoteReleaseId, this.promoteTargetEnv, this.currentUser).subscribe({
+      next: () => {
+        alert('Release promovido com sucesso!');
+        this.closePromoteModal();
+        this.loadReleases();
+      },
+      error: (err: any) => {
+        console.error('Erro ao promover:', err);
+        alert('Erro ao promover release');
+      }
+    });
   }
 }

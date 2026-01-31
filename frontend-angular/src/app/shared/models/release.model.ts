@@ -20,6 +20,7 @@ export interface ReleaseRequest {
   env: ReleaseEnv;
   evidenceUrl?: string;
   evidenceScore?: number;
+  actor?: string;
 }
 
 export interface ReleaseResponse extends Release {}

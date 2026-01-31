@@ -31,9 +31,9 @@ import { map } from 'rxjs';
             <span class="icon">✅</span>
             <span>Aprovações</span>
           </a>
-          <a routerLink="/audit" routerLinkActive="active" class="nav-item">
+          <a routerLink="/audit-logs" routerLinkActive="active" class="nav-item">
             <span class="icon">📋</span>
-            <span>Audit</span>
+            <span>Auditoria</span>
           </a>
         </nav>
         <div class="sidebar-footer">

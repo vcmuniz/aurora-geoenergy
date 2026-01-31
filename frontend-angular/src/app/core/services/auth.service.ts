@@ -39,8 +39,13 @@ export class AuthService {
       );
   }
 
-  getCurrentUser(): User | null {
-    return this.userSubject.getValue();
+  getCurrentUserEmail(): string {
+    const user = this.userSubject.getValue();
+    return user?.email || 'approver@company.co';
+  }
+
+  getCurrentUser$(): Observable<User | null> {
+    return this.user$;
   }
 
   logout(): void {
