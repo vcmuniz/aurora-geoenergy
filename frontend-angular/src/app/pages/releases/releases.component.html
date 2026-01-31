@@ -102,10 +102,6 @@
           <label>Evidence URL</label>
           <input [(ngModel)]="formData.evidenceUrl" name="evidenceUrl" type="text" />
         </div>
-        <div class="form-group">
-          <label>Evidence Score (0-100)</label>
-          <input [(ngModel)]="formData.evidenceScore" name="evidenceScore" type="number" min="0" max="100" />
-        </div>
         <div class="modal-actions">
           <button type="submit" class="btn-save">{{ isEditMode ? 'Atualizar' : 'Criar' }}</button>
           <button type="button" (click)="closeForm()" class="btn-cancel">Cancelar</button>

@@ -134,7 +134,7 @@ export class ReleasesComponent implements OnInit {
       version: release.version,
       env: release.env,
       evidenceUrl: release.evidenceUrl || '',
-      evidenceScore: release.evidenceScore || 0
+      evidenceScore: 0
     };
     this.showForm = true;
   }
