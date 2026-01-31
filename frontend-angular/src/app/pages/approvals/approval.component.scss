@@ -2,7 +2,7 @@
   padding: 30px;
   max-width: 1200px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background-color: #f5f7fa;
   min-height: 100vh;
 }
 
@@ -14,7 +14,7 @@ h1 {
 }
 
 .btn-new {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #667eea;
   color: white;
   padding: 12px 24px;
   border: none;
@@ -27,6 +27,7 @@ h1 {
   transition: all 0.3s ease;
 
   &:hover {
+    background-color: #5568d3;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
   }
@@ -47,7 +48,7 @@ h1 {
   }
 
   th {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-color: #667eea;
     color: white;
     font-weight: 600;
     font-size: 14px;
@@ -82,7 +83,7 @@ h1 {
     transition: color 0.3s ease;
 
     &:hover {
-      color: #764ba2;
+      color: #5568d3;
       text-decoration: underline;
     }
   }
@@ -150,7 +151,7 @@ h1 {
     transition: all 0.3s ease;
 
     &:hover:not(:disabled) {
-      background-color: #764ba2;
+      background-color: #5568d3;
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
@@ -267,10 +268,11 @@ h1 {
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #667eea;
   color: white;
 
   &:hover {
+    background-color: #5568d3;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
   }
