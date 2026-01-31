@@ -13,8 +13,7 @@ def create_release(request: ReleaseRequest, db = Depends(get_db)):
     try:
         use_case = ReleaseUseCase(db)
         result = use_case.create(request)
-        dto = ReleaseResponse.from_orm(result)
-        return ApiResponse.success_response(dto.model_dump(by_alias=True), None).model_dump()
+        return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
@@ -26,8 +25,7 @@ def get_release(release_id: UUID, db = Depends(get_db)):
     try:
         use_case = ReleaseUseCase(db)
         result = use_case.get_by_id(release_id)
-        dto = ReleaseResponse.from_orm(result)
-        return ApiResponse.success_response(dto.model_dump(by_alias=True), None).model_dump()
+        return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
@@ -39,7 +37,7 @@ def list_releases_by_application(app_id: UUID, skip: int = 0, limit: int = 100, 
     try:
         use_case = ReleaseUseCase(db)
         results = use_case.list_by_application(app_id, skip, limit)
-        dtos = [ReleaseResponse.from_orm(r).model_dump(by_alias=True) for r in results]
+        dtos = [r.model_dump(by_alias=True) for r in results]
         return ApiResponse.success_response(dtos, None).model_dump()
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
@@ -50,8 +48,7 @@ def update_release_status(release_id: UUID, status: str, db = Depends(get_db)):
     try:
         use_case = ReleaseUseCase(db)
         result = use_case.update_status(release_id, status)
-        dto = ReleaseResponse.from_orm(result)
-        return ApiResponse.success_response(dto.model_dump(by_alias=True), None).model_dump()
+        return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:

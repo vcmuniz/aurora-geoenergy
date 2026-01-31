@@ -20,11 +20,11 @@ class ReleaseResponse(BaseModel):
     
     id: str
     version: str
-    env: str = Field(alias='environment')
+    environment: str = Field(alias='env')
     notes: Optional[str] = None
     status: str = "DRAFT"
     application_id: str = Field(alias='applicationId')
-    created_at: datetime
+    created_at: datetime = Field(alias='createdAt')
     
     @field_validator('id', 'application_id', mode='before')
     @classmethod
@@ -39,7 +39,7 @@ class ReleaseResponse(BaseModel):
         data = {
             'id': str(obj.id) if isinstance(obj.id, UUID) else obj.id,
             'version': obj.version,
-            'env': obj.env,
+            'environment': obj.env,
             'notes': getattr(obj, 'notes', None),
             'status': getattr(obj, 'status', 'DRAFT'),
             'application_id': str(obj.application_id) if isinstance(obj.application_id, UUID) else obj.application_id,
