@@ -59,6 +59,10 @@ export class AuditLogsComponent implements OnInit {
           if (log.payload?.release_id) {
             this.loadReleaseInfo(log.payload.release_id);
           }
+          // Para UPDATE de RELEASE, usar entityId como release_id
+          if (log.action === 'UPDATE' && log.entity === 'RELEASE' && log.entityId) {
+            this.loadReleaseInfo(log.entityId);
+          }
         });
       },
       error: (err) => {
@@ -117,6 +121,9 @@ export class AuditLogsComponent implements OnInit {
       if (action === 'CREATE' && entity === 'RELEASE') {
         return `Criou release ${payload.version} para ${payload.environment}`;
       }
+      if (action === 'UPDATE' && entity === 'RELEASE') {
+        return `Atualizou release v${payload.version} para ${payload.environment}`;
+      }
       if (action === 'APPROVE') {
         return `Aprovou release v${payload.version} (${payload.environment})`;
       }
@@ -133,7 +140,7 @@ export class AuditLogsComponent implements OnInit {
     }
 
     // Fallback: tenta buscar do cache de releases
-    if ((action === 'APPROVE' || action === 'REJECT' || action === 'PROMOTE') && payload.release_id) {
+    if ((action === 'APPROVE' || action === 'REJECT' || action === 'PROMOTE' || action === 'UPDATE') && payload.release_id) {
       const release = this.releaseCache.get(payload.release_id);
       if (release) {
         if (action === 'APPROVE') {
@@ -142,12 +149,23 @@ export class AuditLogsComponent implements OnInit {
         if (action === 'REJECT') {
           return `Rejeitou release v${release.version} (${release.env})`;
         }
+        if (action === 'UPDATE') {
+          return `Atualizou release v${release.version} (${release.env})`;
+        }
         if (action === 'PROMOTE') {
           const toEnv = payload.to_env || 'outro ambiente';
           const fromEnv = payload.from_env || release.env || '';
           const appName = payload.application_name || 'aplicação';
           return fromEnv ? `Promoveu release v${release.version} (${appName}) de ${fromEnv} para ${toEnv}` : `Promoveu release v${release.version} (${appName}) para ${toEnv}`;
         }
+      }
+    }
+
+    // Fallback para UPDATE usando entityId (para RELEASE)
+    if (action === 'UPDATE' && entity === 'RELEASE' && log.entityId) {
+      const release = this.releaseCache.get(log.entityId);
+      if (release) {
+        return `Atualizou release v${release.version} (${release.env})`;
       }
     }
 
