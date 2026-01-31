@@ -174,6 +174,10 @@ class ReleaseUseCase:
         if not release:
             raise ValueError(f"Release {release_id} not found")
         
+        # Carregar nome da aplicação
+        application = self.app_repo.get_by_id(release.application_id)
+        app_name = application.name if application else "Unknown"
+        
         # Calcular score automaticamente se evidence_url fornecida
         evidence_score = request.evidence_score or 0
         if request.evidence_url:
@@ -186,6 +190,31 @@ class ReleaseUseCase:
         release.evidence_score = evidence_score
         
         self.session.add(release)
+        
+        # Log de timeline
+        self.event_repo.create(
+            release_id=release.id,
+            event_type='UPDATED',
+            status='PENDING',
+            notes=f"Release v{request.version} atualizado para {request.environment} com score {evidence_score}"
+        )
+        
+        # Log de auditoria
+        self.audit_repo.create(
+            actor=self.actor_email,
+            action="UPDATE",
+            entity="RELEASE",
+            entity_id=release.id,
+            payload={
+                "version": request.version,
+                "environment": request.environment,
+                "application_id": str(release.application_id),
+                "application_name": app_name,
+                "evidence_url": request.evidence_url,
+                "evidence_score": evidence_score
+            }
+        )
+        
         self.session.commit()
         
         return ReleaseResponse.from_orm(release)

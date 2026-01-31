@@ -70,9 +70,11 @@ def list_releases_by_application(app_id: UUID, skip: int = Query(0), limit: int 
 
 
 @router.put("/{release_id}", response_model=dict)
-def update_release(release_id: UUID, request: ReleaseRequest, db = Depends(get_db)):
+def update_release(release_id: UUID, request: ReleaseRequest, db = Depends(get_db), authorization: str = Header(None)):
     try:
-        use_case = ReleaseUseCase(db)
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        use_case = ReleaseUseCase(db, actor_email)
         result = use_case.update(release_id, request)
         return ApiResponse.success_response(result.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
