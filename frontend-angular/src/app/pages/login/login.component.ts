@@ -34,12 +34,18 @@ export class LoginComponent {
     this.authService.login({ email: this.email, password: this.password })
       .subscribe({
         next: () => {
-          this.router.navigate(['/applications']);
+          this.router.navigate(['/releases']);
         },
         error: (err) => {
           this.loading = false;
           this.error = err.error?.message || 'Erro ao fazer login';
         }
       });
+  }
+
+  quickLogin(email: string, password: string): void {
+    this.email = email;
+    this.password = password;
+    this.onLogin();
   }
 }
