@@ -220,3 +220,63 @@ def calculate_evidence_score(body: dict = Body(...)):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
+
+@router.get("/{release_id}/checklist", response_model=dict)
+def get_pre_launch_checklist(release_id: UUID, authorization: str = Header(None), db = Depends(get_db)):
+    """Retorna checklist de pré-lançamento para PRE_PROD → PROD"""
+    try:
+        from src.domain.services.policy_service import get_policy_service
+        from src.infrastructure.repositories.approval_repository import ApprovalRepository
+        from src.infrastructure.repositories.release_repository import ReleaseRepository
+        
+        token_payload = extract_user_from_token(authorization)
+        
+        # Carregar release
+        release_repo = ReleaseRepository(db)
+        release = release_repo.get_by_id(release_id)
+        if not release:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Release {release_id} não encontrado")
+        
+        # Carregar policy
+        policy_service = get_policy_service()
+        min_approvals = policy_service.get_min_approvals()
+        min_score = policy_service.get_min_score()
+        
+        # Contar aprovações
+        approval_repo = ApprovalRepository(db)
+        approvals = approval_repo.list_by_release(release_id)
+        approved_count = len([a for a in approvals if a.outcome == 'APPROVED'])
+        
+        # Verificar freeze window
+        is_frozen = policy_service.is_frozen_for_env('PROD')
+        freeze_message = f"Janela de freeze ativa para PROD" if is_frozen else ""
+        
+        # Montar checklist
+        approvals_ok = approved_count >= min_approvals
+        evidence_ok = bool(release.evidence_url)
+        score_ok = release.evidence_score >= min_score
+        freeze_ok = not is_frozen
+        
+        checklist = {
+            'approvalsOk': approvals_ok,
+            'evidenceOk': evidence_ok,
+            'scoreOk': score_ok,
+            'freezeOk': freeze_ok,
+            'ready': approvals_ok and evidence_ok and score_ok and freeze_ok,
+            'approvalCount': approved_count,
+            'minApprovals': min_approvals,
+            'evidenceUrl': release.evidence_url or '',
+            'score': release.evidence_score,
+            'minScore': min_score,
+            'isFrozen': is_frozen,
+            'freezeMessage': freeze_message
+        }
+        
+        return ApiResponse.success_response(checklist, None).model_dump()
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+

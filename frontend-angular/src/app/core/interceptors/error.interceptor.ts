@@ -1,8 +1,11 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { throwError, timer } from 'rxjs';
-import { catchError, retryWhen, take, mergeMap } from 'rxjs/operators';
+import { catchError, retryWhen, mergeMap, tap } from 'rxjs/operators';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+
+const MAX_RETRIES = 3;
+const INITIAL_DELAY_MS = 1000;
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
@@ -10,28 +13,33 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     retryWhen(errors =>
       errors.pipe(
-        mergeMap((error, index) => {
-          if (index >= 3 || !isRetryable(error)) {
+        mergeMap((error, retryCount) => {
+          // Don't retry if max retries reached or error is not retryable
+          if (retryCount >= MAX_RETRIES || !isRetryable(error)) {
             return throwError(() => error);
           }
           
-          const delayMs = Math.pow(2, index) * 1000;
-          console.warn(`[RETRY] Tentativa ${index + 1}/3 em ${delayMs}ms`, error.message);
+          // Exponential backoff: 1s, 2s, 4s
+          const delayMs = INITIAL_DELAY_MS * Math.pow(2, retryCount);
+          console.warn(`[HTTP RETRY] Attempt ${retryCount + 1}/${MAX_RETRIES} in ${delayMs}ms - ${error.message}`);
+          
           return timer(delayMs);
-        }),
-        take(3)
+        })
       )
     ),
     catchError((error: HttpErrorResponse) => {
+      // Handle specific error codes
       if (error.status === 401) {
-        console.error('[401] Não autorizado - redirecionando para login');
+        console.error('[401 Unauthorized] Redirecting to login');
         router.navigate(['/login']);
       } else if (error.status === 403) {
-        console.error('[403] Acesso negado');
+        console.error('[403 Forbidden] Access denied');
+      } else if (error.status === 409) {
+        console.error('[409 Conflict] Concurrent modification detected');
       } else if (error.status >= 500) {
-        console.error('[5xx] Erro no servidor:', error.message);
+        console.error('[5xx Server Error]', error.message);
       } else if (error.status === 0) {
-        console.error('[CONEXÃO] Falha de conexão');
+        console.error('[Network Error] Connection failed');
       }
 
       return throwError(() => error);
@@ -39,6 +47,19 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   );
 };
 
+/**
+ * Determines if an HTTP error should be retried with exponential backoff
+ * @param error HTTP error response
+ * @returns true if error is retryable (network issues, timeouts, server errors)
+ */
 function isRetryable(error: HttpErrorResponse): boolean {
-  return error.status === 0 || error.status === 408 || error.status >= 500;
+  // Retry on:
+  // - Network failures (status 0)
+  // - Timeouts (408)
+  // - Server errors (5xx)
+  // - Rate limiting (429)
+  return error.status === 0 || 
+         error.status === 408 || 
+         error.status === 429 ||
+         (error.status >= 500 && error.status < 600);
 }
