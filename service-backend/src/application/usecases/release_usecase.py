@@ -94,12 +94,16 @@ class ReleaseUseCase:
         return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)
 
     def list_pending_for_user(self, approver_email: str, skip: int = 0, limit: int = 100) -> PaginatedResponse[ReleaseResponse]:
-        """Retorna releases que o usuário ainda NÃO aprovou e NÃO rejeitou"""
+        """Retorna releases que o usuário ainda NÃO aprovou e NÃO rejeitou (excluindo releases em PROD)"""
         # Carregar todos os releases para contar
         all_releases = self.repo.list_all(0, 999999)  # Carregar tudo em memória para contar
         pending_releases = []
         
         for release in all_releases:
+            # Ignorar releases em PROD (não podem ser aprovadas)
+            if release.env == 'PROD':
+                continue
+                
             approvals = self.approval_repo.list_by_release(release.id)
             user_approval = next(
                 (a for a in approvals if a.approver_email == approver_email and a.outcome),
