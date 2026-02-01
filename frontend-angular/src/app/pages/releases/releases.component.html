@@ -168,11 +168,33 @@
   <div *ngIf="showViewModal && selectedRelease" class="modal" (click)="closeViewModal()">
     <div class="modal-content modal-view-release" (click)="$event.stopPropagation()">
       <button (click)="closeViewModal()" class="btn-close" title="Fechar">✕</button>
-      <h2>Detalhes da Release</h2>
+      <h2>{{ selectedRelease.version }} - {{ getApplicationName(selectedRelease.applicationId) }}</h2>
+      
+      <!-- Tabs -->
+      <div class="tabs">
+        <button 
+          class="tab" 
+          [class.active]="activeViewTab === 'info'"
+          (click)="setViewTab('info')">
+          📋 Informações
+        </button>
+        <button 
+          class="tab" 
+          [class.active]="activeViewTab === 'approvals'"
+          (click)="setViewTab('approvals')">
+          ✅ Aprovações ({{ selectedReleaseApprovals.length }})
+        </button>
+        <button 
+          class="tab" 
+          [class.active]="activeViewTab === 'timeline'"
+          (click)="setViewTab('timeline')">
+          🕐 Timeline
+        </button>
+      </div>
+
       <div class="modal-body">
-        <!-- Informações Gerais -->
-        <div class="detail-section">
-          <h3>Informações Gerais</h3>
+        <!-- Tab: Informações Gerais -->
+        <div *ngIf="activeViewTab === 'info'" class="tab-content">
           <div class="detail-grid">
             <div class="detail-row">
               <span class="detail-label">Aplicação:</span>
@@ -196,7 +218,14 @@
             </div>
             <div class="detail-row">
               <span class="detail-label">Score de Evidência:</span>
-              <span class="detail-value">{{ selectedRelease.evidenceScore }}%</span>
+              <span class="detail-value">
+                <div class="score-display">
+                  <strong>{{ selectedRelease.evidenceScore }}%</strong>
+                  <div class="score-bar-inline">
+                    <div class="score-fill" [style.width.%]="selectedRelease.evidenceScore"></div>
+                  </div>
+                </div>
+              </span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Evidence URL:</span>
@@ -209,12 +238,15 @@
               <span class="detail-label">Criada em:</span>
               <span class="detail-value">{{ selectedRelease.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
             </div>
+            <div class="detail-row">
+              <span class="detail-label">Última atualização:</span>
+              <span class="detail-value">{{ selectedRelease.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
           </div>
         </div>
 
-        <!-- Aprovações -->
-        <div class="detail-section">
-          <h3>Aprovações</h3>
+        <!-- Tab: Aprovações -->
+        <div *ngIf="activeViewTab === 'approvals'" class="tab-content">
           <div *ngIf="loadingApprovals" class="loading-small">Carregando aprovações...</div>
           
           <div *ngIf="!loadingApprovals && selectedReleaseApprovals.length === 0" class="empty-small">
@@ -236,9 +268,8 @@
           </div>
         </div>
 
-        <!-- Timeline -->
-        <div class="detail-section">
-          <h3>Timeline</h3>
+        <!-- Tab: Timeline -->
+        <div *ngIf="activeViewTab === 'timeline'" class="tab-content">
           <app-timeline [events]="timeline"></app-timeline>
         </div>
       </div>

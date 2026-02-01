@@ -38,6 +38,7 @@ export class ReleasesComponent implements OnInit {
   selectedRelease: Release | null = null;
   selectedReleaseApprovals: any[] = [];
   loadingApprovals = false;
+  activeViewTab: 'info' | 'approvals' | 'timeline' = 'info';
   showPromoteModal = false;
   showRejectModal = false;
   showDeployModal = false;
@@ -468,6 +469,11 @@ export class ReleasesComponent implements OnInit {
     this.selectedRelease = null;
     this.selectedReleaseApprovals = [];
     this.timeline = [];
+    this.activeViewTab = 'info';
+  }
+
+  setViewTab(tab: 'info' | 'approvals' | 'timeline'): void {
+    this.activeViewTab = tab;
   }
 
   openPromoteModal(releaseId: string, env: string): void {
