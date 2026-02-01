@@ -180,7 +180,7 @@ def promote_release(release_id: UUID, body: dict = Body(...), db = Depends(get_d
             'releaseId': str(release_id),
             'version': promoted_release.model_dump(by_alias=True)['version'],
             'targetEnv': target_env,
-            'status': 'PENDING'
+            'status': promoted_release.model_dump(by_alias=True)['status']
         }
         
         response = ApiResponse.success_response(response_data, None).model_dump()
@@ -196,6 +196,42 @@ def promote_release(release_id: UUID, body: dict = Body(...), db = Depends(get_d
             )
         
         return response
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/{release_id}/reject", response_model=dict)
+def reject_release(release_id: UUID, body: dict = Body(default={}), db = Depends(get_db), authorization: str = Header(None)):
+    """Rejeitar uma release (muda status para REJECTED)"""
+    try:
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        notes = body.get('notes', 'Release rejeitada')
+        
+        use_case = ReleaseUseCase(db, actor_email)
+        rejected_release = use_case.reject_release(release_id, notes)
+        
+        return ApiResponse.success_response(rejected_release.model_dump(by_alias=True), None).model_dump()
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/{release_id}/deploy", response_model=dict)
+def deploy_release(release_id: UUID, body: dict = Body(default={}), db = Depends(get_db), authorization: str = Header(None)):
+    """Implantar uma release em produção (muda status para DEPLOYED)"""
+    try:
+        token_payload = extract_user_from_token(authorization)
+        actor_email = token_payload.email
+        notes = body.get('notes', 'Release implantada em produção')
+        
+        use_case = ReleaseUseCase(db, actor_email)
+        deployed_release = use_case.deploy_release(release_id, notes)
+        
+        return ApiResponse.success_response(deployed_release.model_dump(by_alias=True), None).model_dump()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
