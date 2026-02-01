@@ -421,7 +421,10 @@ export class ReleasesComponent implements OnInit {
   }
 
   loadTimeline(releaseId: string): void {
-    this.selectedReleaseId = releaseId;
+    // Se está no modal de view, não seta o selectedReleaseId
+    if (!this.showViewModal) {
+      this.selectedReleaseId = releaseId;
+    }
     this.loading = true;
     this.timelineService.getTimeline(releaseId).subscribe({
       next: (response: any) => {
@@ -445,6 +448,7 @@ export class ReleasesComponent implements OnInit {
   viewRelease(release: Release): void {
     this.selectedRelease = release;
     this.showViewModal = true;
+    this.selectedReleaseId = null; // Limpar para não abrir timeline standalone
     this.loadTimeline(release.id);
     this.loadReleaseApprovals(release.id);
   }
@@ -470,6 +474,7 @@ export class ReleasesComponent implements OnInit {
     this.selectedReleaseApprovals = [];
     this.timeline = [];
     this.activeViewTab = 'info';
+    this.selectedReleaseId = null; // Garantir que não abre timeline standalone
   }
 
   setViewTab(tab: 'info' | 'approvals' | 'timeline'): void {
