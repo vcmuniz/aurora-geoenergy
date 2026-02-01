@@ -202,9 +202,19 @@ def promote_release(release_id: UUID, body: dict = Body(...), db = Depends(get_d
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-@router.post("/{release_id}/reject", response_model=dict)
-def reject_release(release_id: UUID, body: dict = Body(default={}), db = Depends(get_db), authorization: str = Header(None)):
-    """Rejeitar uma release (muda status para REJECTED)"""
+@router.post("/{release_id}/reject", response_model=dict, summary="Rejeitar Release", description="Rejeita uma release, alterando seu status para REJECTED")
+def reject_release(release_id: UUID, body: dict = Body(default={}, description="Objeto contendo 'notes' (opcional) com o motivo da rejeição"), db = Depends(get_db), authorization: str = Header(None)):
+    """
+    Rejeita uma release alterando seu status para REJECTED.
+    
+    **Parâmetros:**
+    - **release_id**: UUID da release a ser rejeitada
+    - **notes**: Motivo da rejeição (opcional)
+    
+    **Validações:**
+    - Release não pode já estar com status REJECTED
+    - Cria registro no audit log com ação REJECT_RELEASE
+    """
     try:
         token_payload = extract_user_from_token(authorization)
         actor_email = token_payload.email
@@ -220,9 +230,20 @@ def reject_release(release_id: UUID, body: dict = Body(default={}), db = Depends
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-@router.post("/{release_id}/deploy", response_model=dict)
-def deploy_release(release_id: UUID, body: dict = Body(default={}), db = Depends(get_db), authorization: str = Header(None)):
-    """Implantar uma release em produção (muda status para DEPLOYED)"""
+@router.post("/{release_id}/deploy", response_model=dict, summary="Implantar Release em Produção", description="Implanta uma release em produção, alterando seu status para DEPLOYED")
+def deploy_release(release_id: UUID, body: dict = Body(default={}, description="Objeto contendo 'notes' (opcional) com observações sobre a implantação"), db = Depends(get_db), authorization: str = Header(None)):
+    """
+    Implanta uma release em produção alterando seu status para DEPLOYED.
+    
+    **Parâmetros:**
+    - **release_id**: UUID da release a ser implantada
+    - **notes**: Observações sobre a implantação (opcional)
+    
+    **Validações:**
+    - Release deve estar no ambiente PROD
+    - Release deve ter status APPROVED
+    - Cria registro no audit log com ação DEPLOY
+    """
     try:
         token_payload = extract_user_from_token(authorization)
         actor_email = token_payload.email
