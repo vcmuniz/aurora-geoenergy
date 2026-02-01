@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApplicationService } from '@core/services/application.service';
+import { AuthService } from '@core/services/auth.service';
 import { PermissionsService } from '@core/services/permissions.service';
 import { Application, ApplicationRequest } from '@shared/models/application.model';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-applications',
@@ -40,6 +42,12 @@ export class ApplicationsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Subscribe to user changes and reinitialize permissions when user loads
+    this.permissions.userLoaded$.subscribe(() => {
+      this.initializePermissions();
+    });
+    
+    // Also initialize now in case user is already loaded
     this.initializePermissions();
     this.loadApplications();
   }

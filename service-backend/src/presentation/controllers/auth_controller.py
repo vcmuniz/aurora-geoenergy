@@ -30,6 +30,7 @@ async def login(request_obj: Request, request: LoginRequest, session: Session = 
         "sub": user.id,
         "email": user.email,
         "name": user.name,
+        "role": user.role.value,
         "iat": now,
         "exp": now + timedelta(hours=JWT_EXPIRATION_HOURS)
     }

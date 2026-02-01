@@ -67,6 +67,12 @@ export class ReleasesComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Subscribe to user changes and reinitialize permissions when user loads
+    this.permissions.userLoaded$.subscribe(() => {
+      this.initializePermissions();
+    });
+    
+    // Also initialize now in case user is already loaded
     this.initializePermissions();
     this.loadApplications();
   }
@@ -244,13 +250,17 @@ export class ReleasesComponent implements OnInit {
 
   loadTimeline(releaseId: string): void {
     this.selectedReleaseId = releaseId;
+    this.loading = true;
     this.timelineService.getTimeline(releaseId).subscribe({
       next: (response: any) => {
-        this.timeline = response.data || [];
+        this.timeline = response.data?.events || response.data || [];
+        this.loading = false;
       },
       error: (err: any) => {
         console.error('Erro ao carregar timeline:', err);
         this.timeline = [];
+        this.loading = false;
+        alert('Erro ao carregar timeline do release');
       }
     });
   }
@@ -278,6 +288,32 @@ export class ReleasesComponent implements OnInit {
   }
 
   validatePromotion(releaseId: string): void {
+    // Use the backend's pre-launch checklist endpoint for real validation
+    this.releaseService.getPreLaunchChecklist(releaseId).subscribe({
+      next: (checklist: any) => {
+        const data = checklist.data || checklist;
+        this.promoteValidation = {
+          hasApprovals: data.approvalsOk,
+          approvalCount: data.approvalCount || 0,
+          hasEvidenceUrl: data.evidenceOk,
+          evidenceUrl: data.evidenceUrl || '',
+          hasMinScore: data.scoreOk,
+          score: data.score || 0,
+          minScore: data.minScore || 70,
+          isFrozen: !data.freezeOk,
+          freezeMessage: data.freezeMessage || '',
+          canPromote: data.ready
+        };
+      },
+      error: (err) => {
+        console.error('Erro ao validar promoção:', err);
+        // Fallback: manual validation
+        this.validatePromotionManual(releaseId);
+      }
+    });
+  }
+
+  private validatePromotionManual(releaseId: string): void {
     this.releaseService.getById(releaseId).subscribe({
       next: (response: any) => {
         const release = response.data;
@@ -285,7 +321,6 @@ export class ReleasesComponent implements OnInit {
         // Contar approvals
         this.approvalService.list(0, 100).subscribe({
           next: (appResponse: any) => {
-            // O endpoint retorna array direta ou wrapped em data
             const approvals = Array.isArray(appResponse.data) ? appResponse.data : (appResponse.data?.data || []);
             const releaseApprovals = approvals.filter((a: any) => a.releaseId === releaseId);
             const approved = releaseApprovals.filter((a: any) => a.outcome === 'APPROVED').length;
@@ -298,6 +333,8 @@ export class ReleasesComponent implements OnInit {
               hasMinScore: release.evidenceScore >= 70,
               score: release.evidenceScore,
               minScore: 70,
+              isFrozen: false,
+              freezeMessage: '',
               canPromote: approved >= 1 && !!release.evidenceUrl && release.evidenceScore >= 70
             };
           }

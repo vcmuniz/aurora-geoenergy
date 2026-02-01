@@ -68,6 +68,12 @@ export class ApprovalsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Subscribe to user changes and reinitialize permissions when user loads
+    this.permissions.userLoaded$.subscribe(() => {
+      this.initializePermissions();
+    });
+    
+    // Also initialize now in case user is already loaded
     this.initializePermissions();
     this.loadData();
   }

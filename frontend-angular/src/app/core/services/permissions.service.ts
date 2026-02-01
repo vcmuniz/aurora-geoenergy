@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
+import { filter, shareReplay } from 'rxjs';
 
 export type UserRole = 'ADMIN' | 'APPROVER' | 'VIEWER';
 
@@ -16,10 +17,17 @@ export interface Permission {
   providedIn: 'root'
 })
 export class PermissionsService {
+  public userLoaded$ = this.authService.user$.pipe(
+    filter(user => !!user),
+    shareReplay(1)
+  );
+
   constructor(private authService: AuthService) {}
 
   getUserRole(): UserRole {
-    return this.authService.getCurrentUser()?.role as UserRole || 'VIEWER';
+    const user = this.authService.getCurrentUser();
+    const role = (user?.role?.toUpperCase() as UserRole) || 'VIEWER';
+    return role;
   }
 
   isAdmin(): boolean {
