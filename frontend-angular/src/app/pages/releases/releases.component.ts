@@ -157,12 +157,11 @@ export class ReleasesComponent implements OnInit {
   }
 
   loadApprovalCounts(releaseId: string): void {
-    this.approvalService.list(0, 100).subscribe({
+    this.approvalService.listByReleaseId(releaseId).subscribe({
       next: (response: any) => {
-        const approvals = response.data?.data || [];
-        const releaseApprovals = approvals.filter((a: any) => a.releaseId === releaseId);
-        const approved = releaseApprovals.filter((a: any) => a.outcome === 'APPROVED').length;
-        const rejected = releaseApprovals.filter((a: any) => a.outcome === 'REJECTED').length;
+        const approvals = response.data || [];
+        const approved = approvals.filter((a: any) => a.outcome === 'APPROVED').length;
+        const rejected = approvals.filter((a: any) => a.outcome === 'REJECTED').length;
         
         this.approvalCounts.set(releaseId, { approved, rejected });
       },
