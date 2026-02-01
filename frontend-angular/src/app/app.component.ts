@@ -29,7 +29,7 @@ import { map, interval, switchMap, startWith, takeWhile, merge } from 'rxjs';
           <a routerLink="/approvals" routerLinkActive="active" class="nav-item">
             <span class="icon">✅</span>
             <span>Aprovações</span>
-            <span class="badge" *ngIf="pendingCount > 0">{{ pendingCount }}</span>
+            <span class="badge" *ngIf="canApprove && pendingCount > 0">{{ pendingCount }}</span>
           </a>
           <a routerLink="/audit-logs" routerLinkActive="active" class="nav-item">
             <span class="icon">📋</span>
@@ -181,6 +181,7 @@ export class AppComponent implements OnInit, OnDestroy {
   isAuthenticated$;
   currentUser$;
   pendingCount = 0;
+  canApprove = false;
   private isAlive = true;
 
   constructor(
@@ -198,8 +199,15 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.authService.isAuthenticated()) {
       this.authService.getMe().subscribe({
         next: () => {
-          // User loaded, start polling
-          this.startPolling();
+          // User loaded, check permissions
+          const user = this.authService.getCurrentUser();
+          const role = user?.role?.toUpperCase();
+          this.canApprove = role === 'ADMIN' || role === 'APPROVER';
+          
+          // Start polling only if user can approve
+          if (this.canApprove) {
+            this.startPolling();
+          }
         },
         error: (err) => {
           console.warn('Token expired, logging out');
