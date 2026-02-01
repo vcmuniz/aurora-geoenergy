@@ -11,7 +11,7 @@ export const adminGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  router.navigate(['/dashboard']);
+  router.navigate(['/applications']);
   return false;
 };
 
@@ -24,6 +24,6 @@ export const approverGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  router.navigate(['/dashboard']);
+  router.navigate(['/applications']);
   return false;
 };

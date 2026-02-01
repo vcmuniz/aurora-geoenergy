@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '@core/services/auth.service';
+import { ApprovalService } from '@core/services/approval.service';
 import { ToastComponent } from '@shared/components/toast/toast.component';
-import { map } from 'rxjs';
+import { map, interval, switchMap, startWith, takeWhile, merge } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -17,10 +18,6 @@ import { map } from 'rxjs';
           <h2>Aurora</h2>
         </div>
         <nav class="sidebar-nav">
-          <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
-            <span class="icon">📊</span>
-            <span>Dashboard</span>
-          </a>
           <a routerLink="/applications" routerLinkActive="active" class="nav-item">
             <span class="icon">📦</span>
             <span>Aplicações</span>
@@ -32,6 +29,7 @@ import { map } from 'rxjs';
           <a routerLink="/approvals" routerLinkActive="active" class="nav-item">
             <span class="icon">✅</span>
             <span>Aprovações</span>
+            <span class="badge" *ngIf="pendingCount > 0">{{ pendingCount }}</span>
           </a>
           <a routerLink="/audit-logs" routerLinkActive="active" class="nav-item">
             <span class="icon">📋</span>
@@ -112,6 +110,18 @@ import { map } from 'rxjs';
       }
     }
 
+    .badge {
+      margin-left: auto;
+      background-color: #dc2626;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      min-width: 20px;
+      text-align: center;
+    }
+
     .sidebar-footer {
       padding: 15px 20px;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -167,11 +177,17 @@ import { map } from 'rxjs';
     }
   `]
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   isAuthenticated$;
   currentUser$;
+  pendingCount = 0;
+  private isAlive = true;
 
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(
+    private authService: AuthService, 
+    private approvalService: ApprovalService,
+    private router: Router
+  ) {
     this.isAuthenticated$ = this.authService.user$.pipe(
       map(user => !!user && this.authService.isAuthenticated())
     );
@@ -182,7 +198,8 @@ export class AppComponent implements OnInit {
     if (this.authService.isAuthenticated()) {
       this.authService.getMe().subscribe({
         next: () => {
-          // User loaded
+          // User loaded, start polling
+          this.startPolling();
         },
         error: (err) => {
           console.warn('Token expired, logging out');
@@ -190,6 +207,30 @@ export class AppComponent implements OnInit {
         }
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.isAlive = false;
+  }
+
+  private startPolling(): void {
+    // Poll every 30 seconds, or immediately when an approval changes
+    merge(
+      interval(30000).pipe(startWith(0)),
+      this.approvalService.approvalChanged$
+    ).pipe(
+      takeWhile(() => this.isAlive),
+      switchMap(() => this.approvalService.listPendingCurrentUser(0, 1))
+    ).subscribe({
+      next: (response) => {
+        console.log('Pending approvals response:', response);
+        this.pendingCount = response.data?.total || 0;
+        console.log('Pending count:', this.pendingCount);
+      },
+      error: (err) => {
+        console.error('Error polling pending approvals:', err);
+      }
+    });
   }
 
   logout(): void {

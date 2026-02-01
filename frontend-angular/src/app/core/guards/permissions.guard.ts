@@ -11,7 +11,7 @@ export const canCreateApplicationGuard: CanActivateFn = () => {
     return true;
   }
 
-  router.navigate(['/dashboard']);
+  router.navigate(['/applications']);
   return false;
 };
 
@@ -23,7 +23,7 @@ export const canManageApplicationsGuard: CanActivateFn = () => {
     return true;
   }
 
-  router.navigate(['/dashboard']);
+  router.navigate(['/applications']);
   return false;
 };
 
@@ -36,7 +36,7 @@ export const canCreateReleaseGuard: CanActivateFn = () => {
     return true;
   }
 
-  router.navigate(['/dashboard']);
+  router.navigate(['/applications']);
   return false;
 };
 
@@ -48,7 +48,7 @@ export const canManageReleasesGuard: CanActivateFn = () => {
     return true;
   }
 
-  router.navigate(['/dashboard']);
+  router.navigate(['/applications']);
   return false;
 };
 
@@ -60,7 +60,7 @@ export const canPromoteReleaseGuard: CanActivateFn = () => {
     return true;
   }
 
-  router.navigate(['/dashboard']);
+  router.navigate(['/applications']);
   return false;
 };
 
@@ -73,6 +73,6 @@ export const canApproveGuard: CanActivateFn = () => {
     return true;
   }
 
-  router.navigate(['/dashboard']);
+  router.navigate(['/applications']);
   return false;
 };
