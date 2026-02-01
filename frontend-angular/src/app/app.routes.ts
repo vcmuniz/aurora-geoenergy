@@ -8,12 +8,11 @@ import { AuditLogsComponent } from './pages/audit-logs/audit-logs.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', redirectTo: 'applications', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'applications', component: ApplicationsComponent, canActivate: [authGuard] },
   { path: 'releases', component: ReleasesComponent, canActivate: [authGuard] },
   { path: 'approvals', component: ApprovalsComponent, canActivate: [authGuard] },
   { path: 'audit-logs', component: AuditLogsComponent, canActivate: [authGuard] },
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: 'applications' }
 ];
