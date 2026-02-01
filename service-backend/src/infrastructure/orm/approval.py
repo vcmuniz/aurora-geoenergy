@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey, CheckConstraint, Text
+from sqlalchemy import Column, String, DateTime, ForeignKey, CheckConstraint, Text, Index, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 import uuid
@@ -14,4 +14,7 @@ class ApprovalORM(Base):
     notes = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    __table_args__ = ()
+    __table_args__ = (
+        # Garantir que cada usuário pode aprovar/rejeitar uma release apenas uma vez
+        UniqueConstraint('release_id', 'approver_email', name='uq_approval_release_approver'),
+    )
