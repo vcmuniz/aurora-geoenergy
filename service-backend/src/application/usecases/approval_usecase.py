@@ -61,6 +61,8 @@ class ApprovalUseCase:
 
     def approve(self, release_id: UUID, approver_email: str, notes: str = None) -> ApprovalResponse:
         """Criar approval com outcome APPROVED"""
+        from src.domain.services.policy_service import get_policy_service
+        
         # Buscar release e aplicação para enriquecer audit log
         release = self.release_repo.get_by_id(release_id)
         if not release:
@@ -94,6 +96,26 @@ class ApprovalUseCase:
         application = self.app_repo.get_by_id(release.application_id)
         app_name = application.name if application else "Unknown"
         
+        # Contar aprovações APPROVED para este release
+        all_approvals = self.repo.list_by_release(release_id)
+        approval_count = len([a for a in all_approvals if a.outcome == 'APPROVED'])
+        
+        # Verificar se atingiu minApprovals da policy
+        policy_service = get_policy_service()
+        policy = policy_service.get_policy()
+        min_approvals = policy.get('minApprovals', 1)
+        
+        # Se atingiu o mínimo de aprovações, mudar status para APPROVED
+        if approval_count >= min_approvals and release.status == 'PENDING':
+            self.release_repo.update_status(release_id, 'APPROVED')
+            self.event_repo.create(
+                release_id=release_id,
+                event_type='STATUS_CHANGED',
+                status='APPROVED',
+                actor_email='system',
+                notes=f"Status alterado para APPROVED após {approval_count} aprovações"
+            )
+        
         # Criar evento
         self.event_repo.create(
             release_id=release_id,
@@ -115,7 +137,9 @@ class ApprovalUseCase:
                 "environment": release.env,
                 "application_id": str(release.application_id),
                 "application_name": app_name,
-                "notes": notes
+                "notes": notes,
+                "approval_count": approval_count,
+                "min_approvals": min_approvals
             }
         )
         
