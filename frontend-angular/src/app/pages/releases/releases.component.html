@@ -144,9 +144,9 @@
           <div class="form-group">
             <label>Ambiente *</label>
             <select [(ngModel)]="formData.env" name="env" required [disabled]="!isEditMode">
-              <option value="DEV">DEV</option>
-              <option value="PRE_PROD">PRE_PROD</option>
-              <option value="PROD">PROD</option>
+              <option value="DEV">{{ getEnvLabel('DEV') }}</option>
+              <option value="PRE_PROD">{{ getEnvLabel('PRE_PROD') }}</option>
+              <option value="PROD">{{ getEnvLabel('PROD') }}</option>
             </select>
             <small *ngIf="!isEditMode" style="color: #7f8c8d; display: block; margin-top: 4px;">Novas releases sempre começam em DEV</small>
           </div>
@@ -180,12 +180,12 @@
       <button (click)="closePromoteModal()" class="btn-close" title="Fechar">✕</button>
       <h2>Promover Release</h2>
       <div class="modal-body">
-        <p style="color: #7f8c8d; margin-bottom: 20px;">Ambiente atual: <strong style="color: #2c3e50;">{{ currentEnv }}</strong></p>
+        <p style="color: #7f8c8d; margin-bottom: 20px;">Ambiente atual: <strong style="color: #2c3e50;">{{ getEnvLabel(currentEnv) }}</strong></p>
       <div class="form-group">
         <label>Ambiente Destino:</label>
         <select [(ngModel)]="promoteTargetEnv" name="targetEnv">
-          <option *ngIf="currentEnv === 'DEV'" value="PRE_PROD">PRE_PROD</option>
-          <option *ngIf="currentEnv === 'PRE_PROD'" value="PROD">PROD</option>
+          <option *ngIf="currentEnv === 'DEV'" value="PRE_PROD">{{ getEnvLabel('PRE_PROD') }}</option>
+          <option *ngIf="currentEnv === 'PRE_PROD'" value="PROD">{{ getEnvLabel('PROD') }}</option>
         </select>
       </div>
 

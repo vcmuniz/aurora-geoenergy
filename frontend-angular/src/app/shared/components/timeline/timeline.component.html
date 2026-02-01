@@ -9,9 +9,9 @@
     </div>
     <div class="timeline-content">
       <div class="event-header">
-        <h3>{{ event.eventType }}</h3>
+        <h3>{{ getEventTypeLabel(event.eventType) }}</h3>
         <span class="status-badge" [class]="'badge-' + getStatusColor(event.status)">
-          {{ event.status }}
+          {{ getStatusLabel(event.status) }}
         </span>
       </div>
       <p class="event-time">{{ event.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>

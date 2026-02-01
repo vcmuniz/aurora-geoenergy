@@ -32,4 +32,27 @@ export class TimelineComponent {
     };
     return colors[status] || 'default';
   }
+
+  getStatusLabel(status: string): string {
+    const labels: { [key: string]: string } = {
+      'PENDING': 'Pendente',
+      'APPROVED': 'Aprovado',
+      'REJECTED': 'Rejeitado',
+      'DEPLOYED': 'Implantado',
+      'COMPLETED': 'Completo'
+    };
+    return labels[status] || status;
+  }
+
+  getEventTypeLabel(eventType: string): string {
+    const labels: { [key: string]: string } = {
+      'CREATED': 'Criado',
+      'UPDATED': 'Atualizado',
+      'APPROVED': 'Aprovado',
+      'REJECTED': 'Rejeitado',
+      'DEPLOYED': 'Implantado',
+      'PROMOTED': 'Promovido'
+    };
+    return labels[eventType] || eventType;
+  }
 }
