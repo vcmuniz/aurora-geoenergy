@@ -56,6 +56,12 @@ h1 {
   th, td {
     padding: 18px 20px;
     text-align: left;
+
+    &:last-child {
+      text-align: right;
+      white-space: nowrap;
+      width: 140px;
+    }
   }
 
   th {
@@ -352,6 +358,92 @@ h1 {
   font-size: 13px;
   font-weight: 600;
   transition: all 0.3s ease;
+}
+
+.btn-icon {
+  background-color: #f0f4ff;
+  border: 1px solid #e0e7ff;
+  padding: 8px;
+  margin-left: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:first-child {
+    margin-left: 0;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: #667eea;
+    transition: color 0.2s ease;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: #667eea;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+
+    svg {
+      color: white;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
+      background-color: #f0f4ff;
+      border-color: #e0e7ff;
+    }
+  }
+
+  // Aprovar - Verde
+  &:nth-child(1) {
+    background-color: #d1fae5;
+    border-color: #a7f3d0;
+
+    svg {
+      color: #10b981;
+    }
+
+    &:hover:not(:disabled) {
+      background-color: #10b981;
+      border-color: #10b981;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+
+      svg {
+        color: white;
+      }
+    }
+  }
+
+  &.btn-icon-danger {
+    background-color: #fef2f2;
+    border-color: #fee2e2;
+
+    svg {
+      color: #dc2626;
+    }
+
+    &:hover:not(:disabled) {
+      background-color: #dc2626;
+      border-color: #dc2626;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+
+      svg {
+        color: white;
+      }
+    }
+  }
 }
 
 .btn-approve {

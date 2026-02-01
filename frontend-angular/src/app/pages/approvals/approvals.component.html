@@ -46,15 +46,21 @@
               *ngIf="selectedFilter === 'pendentes'"
               (click)="openApprovalModal(approval, 'approve')"
               [disabled]="!canApprove"
-              class="btn-approve">
-              Aprovar
+              class="btn-icon"
+              title="Aprovar">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
             </button>
             <button 
               *ngIf="selectedFilter === 'pendentes'"
               (click)="openApprovalModal(approval, 'reject')"
               [disabled]="!canReject"
-              class="btn-reject">
-              Rejeitar
+              class="btn-icon btn-icon-danger"
+              title="Rejeitar">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
             </button>
             <span *ngIf="selectedFilter !== 'pendentes'" class="status-done">✓ Respondido</span>
           </td>
