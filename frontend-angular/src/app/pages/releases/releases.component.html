@@ -72,9 +72,10 @@
         </td>
         <td>{{ release.createdAt | date: 'dd/MM/yyyy' }}</td>
         <td>
-          <button (click)="loadTimeline(release.id)" class="btn-icon" title="Timeline">
+          <button (click)="viewRelease(release)" class="btn-icon" title="Visualizar">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
             </svg>
           </button>
           <button *ngIf="canEdit && release.status !== 'DEPLOYED' && release.status !== 'REJECTED'" (click)="editRelease(release)" class="btn-icon" title="Editar">
@@ -163,8 +164,89 @@
     </div>
   </div>
 
-  <!-- Timeline Modal -->
-  <div *ngIf="selectedReleaseId" class="modal" (click)="closeTimeline()">
+  <!-- View Release Modal -->
+  <div *ngIf="showViewModal && selectedRelease" class="modal" (click)="closeViewModal()">
+    <div class="modal-content modal-view-release" (click)="$event.stopPropagation()">
+      <button (click)="closeViewModal()" class="btn-close" title="Fechar">✕</button>
+      <h2>Detalhes da Release</h2>
+      <div class="modal-body">
+        <!-- Informações Gerais -->
+        <div class="detail-section">
+          <h3>Informações Gerais</h3>
+          <div class="detail-grid">
+            <div class="detail-row">
+              <span class="detail-label">Aplicação:</span>
+              <span class="detail-value">{{ getApplicationName(selectedRelease.applicationId) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Versão:</span>
+              <span class="detail-value"><strong>{{ selectedRelease.version }}</strong></span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Ambiente:</span>
+              <span class="detail-value">
+                <span [class]="'env-badge env-' + selectedRelease.env">{{ getEnvLabel(selectedRelease.env) }}</span>
+              </span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Status:</span>
+              <span class="detail-value">
+                <span [class]="'status-badge status-' + selectedRelease.status">{{ getStatusLabel(selectedRelease.status) }}</span>
+              </span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Score de Evidência:</span>
+              <span class="detail-value">{{ selectedRelease.evidenceScore }}%</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Evidence URL:</span>
+              <span class="detail-value">
+                <a *ngIf="selectedRelease.evidenceUrl" [href]="selectedRelease.evidenceUrl" target="_blank">{{ selectedRelease.evidenceUrl }}</a>
+                <span *ngIf="!selectedRelease.evidenceUrl">-</span>
+              </span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Criada em:</span>
+              <span class="detail-value">{{ selectedRelease.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aprovações -->
+        <div class="detail-section">
+          <h3>Aprovações</h3>
+          <div *ngIf="loadingApprovals" class="loading-small">Carregando aprovações...</div>
+          
+          <div *ngIf="!loadingApprovals && selectedReleaseApprovals.length === 0" class="empty-small">
+            Nenhuma aprovação registrada
+          </div>
+
+          <div *ngIf="!loadingApprovals && selectedReleaseApprovals.length > 0" class="approvals-list">
+            <div *ngFor="let approval of selectedReleaseApprovals" class="approval-item" [class.approved]="approval.outcome === 'APPROVED'" [class.rejected]="approval.outcome === 'REJECTED'">
+              <div class="approval-header">
+                <span class="approval-icon">{{ approval.outcome === 'APPROVED' ? '✓' : '✗' }}</span>
+                <span class="approval-outcome">{{ approval.outcome === 'APPROVED' ? 'Aprovado' : 'Rejeitado' }}</span>
+              </div>
+              <div class="approval-details">
+                <div><strong>{{ approval.approverEmail }}</strong></div>
+                <div class="approval-date">{{ approval.createdAt | date: 'dd/MM/yyyy HH:mm' }}</div>
+                <div *ngIf="approval.notes" class="approval-notes">{{ approval.notes }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="detail-section">
+          <h3>Timeline</h3>
+          <app-timeline [events]="timeline"></app-timeline>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline Modal (standalone - mantido para compatibilidade) -->
+  <div *ngIf="selectedReleaseId && !showViewModal" class="modal" (click)="closeTimeline()">
     <div class="modal-content modal-timeline" (click)="$event.stopPropagation()">
       <button (click)="closeTimeline()" class="btn-close" title="Fechar">✕</button>
       <h2>Timeline do Release</h2>

@@ -34,6 +34,10 @@ export class ReleasesComponent implements OnInit {
   filterStatus = 'ACTIVE'; // ACTIVE = PENDING + APPROVED
   selectedReleaseId: string | null = null;
   timeline: any[] = [];
+  showViewModal = false;
+  selectedRelease: Release | null = null;
+  selectedReleaseApprovals: any[] = [];
+  loadingApprovals = false;
   showPromoteModal = false;
   showRejectModal = false;
   showDeployModal = false;
@@ -434,6 +438,35 @@ export class ReleasesComponent implements OnInit {
 
   closeTimeline(): void {
     this.selectedReleaseId = null;
+    this.timeline = [];
+  }
+
+  viewRelease(release: Release): void {
+    this.selectedRelease = release;
+    this.showViewModal = true;
+    this.loadTimeline(release.id);
+    this.loadReleaseApprovals(release.id);
+  }
+
+  loadReleaseApprovals(releaseId: string): void {
+    this.loadingApprovals = true;
+    this.approvalService.listByReleaseId(releaseId).subscribe({
+      next: (response: any) => {
+        this.selectedReleaseApprovals = response.data || [];
+        this.loadingApprovals = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar aprovações:', err);
+        this.selectedReleaseApprovals = [];
+        this.loadingApprovals = false;
+      }
+    });
+  }
+
+  closeViewModal(): void {
+    this.showViewModal = false;
+    this.selectedRelease = null;
+    this.selectedReleaseApprovals = [];
     this.timeline = [];
   }
 
