@@ -122,10 +122,8 @@ export class ReleasesComponent implements OnInit {
       this.releases = responses.flatMap((response: any) => response.data?.data || []);
       this.applyFilter();
       this.loading = false;
-      // Carregar contagem de aprovações para cada release
-      this.releases.forEach(release => {
-        this.loadApprovalCounts(release.id);
-      });
+      // Carregar contagem de aprovações para TODAS as releases de uma vez
+      this.loadAllApprovalCounts();
     }).catch((err) => {
       console.error('Erro ao carregar releases:', err);
       this.loading = false;
@@ -159,6 +157,35 @@ export class ReleasesComponent implements OnInit {
   onFilterChange(): void {
     this.skip = 0;
     this.applyFilter();
+  }
+
+  loadAllApprovalCounts(): void {
+    // Buscar TODAS as aprovações de uma vez só
+    this.approvalService.list(0, 1000).subscribe({
+      next: (response: any) => {
+        const allApprovals = response.data?.data || [];
+        
+        // Agrupar por release_id e contar
+        const countsByRelease = new Map<string, { approved: number; rejected: number }>();
+        
+        allApprovals.forEach((approval: any) => {
+          if (!countsByRelease.has(approval.releaseId)) {
+            countsByRelease.set(approval.releaseId, { approved: 0, rejected: 0 });
+          }
+          
+          const counts = countsByRelease.get(approval.releaseId)!;
+          if (approval.outcome === 'APPROVED') {
+            counts.approved++;
+          } else if (approval.outcome === 'REJECTED') {
+            counts.rejected++;
+          }
+        });
+        
+        // Atualizar o Map de contagem
+        this.approvalCounts = countsByRelease;
+      },
+      error: (err) => console.error('Erro ao carregar aprovações:', err)
+    });
   }
 
   loadApprovalCounts(releaseId: string): void {
