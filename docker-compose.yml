@@ -63,6 +63,7 @@ services:
     volumes:
       - ./service-backend/src:/app/src
       - ./service-backend/main.py:/app/main.py
+      - ./service-backend/policy.yaml:/app/policy.yaml
       - ./service-backend/migrations:/app/migrations
       - ./service-backend/tests:/app/tests
     depends_on:

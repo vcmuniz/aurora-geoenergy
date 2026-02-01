@@ -138,7 +138,7 @@
         <h3>Requisitos para Promoção:</h3>
         <div class="validation-item" [class.valid]="promoteValidation.hasApprovals" [class.invalid]="!promoteValidation.hasApprovals">
           <span class="icon">{{ promoteValidation.hasApprovals ? '✅' : '❌' }}</span>
-          <span>Aprovações: {{ promoteValidation.approvalCount }}/1 necessária(s)</span>
+          <span>Aprovações: {{ promoteValidation.approvalCount }}/{{ promoteValidation.minApprovals || 1 }} necessária(s)</span>
         </div>
         <div class="validation-item" [class.valid]="promoteValidation.hasEvidenceUrl" [class.invalid]="!promoteValidation.hasEvidenceUrl">
           <span class="icon">{{ promoteValidation.hasEvidenceUrl ? '✅' : '❌' }}</span>
@@ -147,6 +147,10 @@
         <div class="validation-item" [class.valid]="promoteValidation.hasMinScore" [class.invalid]="!promoteValidation.hasMinScore">
           <span class="icon">{{ promoteValidation.hasMinScore ? '✅' : '❌' }}</span>
           <span>Score: {{ promoteValidation.score }}/{{ promoteValidation.minScore }} mínimo</span>
+        </div>
+        <div class="validation-item" [class.valid]="!promoteValidation.isFrozen" [class.invalid]="promoteValidation.isFrozen">
+          <span class="icon">{{ !promoteValidation.isFrozen ? '✅' : '❌' }}</span>
+          <span>Freeze Window: {{ promoteValidation.isFrozen ? promoteValidation.freezeMessage : 'Permitido' }}</span>
         </div>
       </div>
 
