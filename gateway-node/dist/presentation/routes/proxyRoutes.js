@@ -234,7 +234,12 @@ function createProxyRoutes(backendClient) {
      * /api/releases/{release_id}/reject:
      *   post:
      *     summary: Rejeitar release
-     *     description: Rejeita uma release (muda status para REJECTED)
+     *     description: |
+     *       Rejeita uma release alterando seu status para REJECTED.
+     *
+     *       **Validações:**
+     *       - Release não pode já estar com status REJECTED
+     *       - Cria registro no audit log com ação REJECT_RELEASE
      *     tags: [Releases]
      *     security:
      *       - bearerAuth: []
@@ -242,24 +247,47 @@ function createProxyRoutes(backendClient) {
      *       - in: path
      *         name: release_id
      *         required: true
-     *         schema: { type: string }
+     *         schema: { type: string, format: uuid }
+     *         description: UUID da release a ser rejeitada
      *     requestBody:
      *       content:
      *         application/json:
      *           schema:
      *             type: object
      *             properties:
-     *               notes: { type: string }
+     *               notes:
+     *                 type: string
+     *                 description: Motivo da rejeição (opcional)
+     *                 example: "Não atende aos requisitos de segurança"
      *     responses:
      *       200:
      *         description: Release rejeitada com sucesso
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success: { type: boolean, example: true }
+     *                 data:
+     *                   type: object
+     *                   description: Release atualizada com status REJECTED
      *       400:
-     *         description: Erro ao rejeitar release
+     *         description: Erro ao rejeitar release (já está rejeitada)
+     *       401:
+     *         description: Não autorizado
+     *       404:
+     *         description: Release não encontrada
      *
      * /api/releases/{release_id}/deploy:
      *   post:
      *     summary: Implantar release em produção
-     *     description: Marca release em PROD como implantada (DEPLOYED)
+     *     description: |
+     *       Implanta uma release em produção alterando seu status para DEPLOYED.
+     *
+     *       **Validações:**
+     *       - Release deve estar no ambiente PROD
+     *       - Release deve ter status APPROVED
+     *       - Cria registro no audit log com ação DEPLOY
      *     tags: [Releases]
      *     security:
      *       - bearerAuth: []
@@ -267,19 +295,36 @@ function createProxyRoutes(backendClient) {
      *       - in: path
      *         name: release_id
      *         required: true
-     *         schema: { type: string }
+     *         schema: { type: string, format: uuid }
+     *         description: UUID da release a ser implantada
      *     requestBody:
      *       content:
      *         application/json:
      *           schema:
      *             type: object
      *             properties:
-     *               notes: { type: string }
+     *               notes:
+     *                 type: string
+     *                 description: Observações sobre a implantação (opcional)
+     *                 example: "Deploy realizado às 14:30 - servidor principal"
      *     responses:
      *       200:
      *         description: Release implantada com sucesso
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success: { type: boolean, example: true }
+     *                 data:
+     *                   type: object
+     *                   description: Release atualizada com status DEPLOYED
      *       400:
      *         description: Erro ao implantar (não está em PROD ou não está APPROVED)
+     *       401:
+     *         description: Não autorizado
+     *       404:
+     *         description: Release não encontrada
      *
      * /api/releases/{release_id}/status:
      *   put:
@@ -457,7 +502,7 @@ function createProxyRoutes(backendClient) {
      *         schema: { type: string, enum: [RELEASE, APPROVAL, APPLICATION] }
      *       - in: query
      *         name: action
-     *         schema: { type: string, enum: [CREATE, UPDATE, DELETE, APPROVE, REJECT, PROMOTE] }
+     *         schema: { type: string, enum: [CREATE, UPDATE, DELETE, APPROVE, REJECT, PROMOTE, DEPLOY, REJECT_RELEASE] }
      *       - in: query
      *         name: actor
      *         schema: { type: string }
