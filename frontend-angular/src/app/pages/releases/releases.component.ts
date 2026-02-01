@@ -7,6 +7,7 @@ import { ApprovalService } from '@core/services/approval.service';
 import { AuthService } from '@core/services/auth.service';
 import { PermissionsService } from '@core/services/permissions.service';
 import { ReleaseTimelineService } from '@core/services/release-timeline.service';
+import { NotificationService } from '@core/services/notification.service';
 import { TimelineComponent } from '@shared/components/timeline/timeline.component';
 import { Release, ReleaseRequest } from '@shared/models/release.model';
 import { Application } from '@shared/models/application.model';
@@ -21,6 +22,7 @@ import { Application } from '@shared/models/application.model';
 export class ReleasesComponent implements OnInit {
   Math = Math;
   releases: Release[] = [];
+  filteredReleases: Release[] = [];
   applications: Application[] = [];
   approvalCounts: Map<string, { approved: number; rejected: number }> = new Map();
   loading = false;
@@ -28,14 +30,22 @@ export class ReleasesComponent implements OnInit {
   isEditMode = false;
   editingReleaseId: string | null = null;
   selectedAppId = '';
+  filterAppId = '';
+  filterStatus = 'ACTIVE'; // ACTIVE = PENDING + APPROVED
   selectedReleaseId: string | null = null;
   timeline: any[] = [];
   showPromoteModal = false;
+  showRejectModal = false;
+  showDeployModal = false;
   promoteReleaseId: string | null = null;
+  rejectReleaseId: string | null = null;
+  deployReleaseId: string | null = null;
+  rejectNotes: string = '';
   currentEnv: string = '';
   promoteTargetEnv: string = '';
   currentUser: string = ''; // TODO: get from auth
   promoteValidation: any = null;
+  openMenuId: string | null = null;
 
   // Permissions
   canCreate = false;
@@ -61,6 +71,7 @@ export class ReleasesComponent implements OnInit {
     private approvalService: ApprovalService,
     private timelineService: ReleaseTimelineService,
     private authService: AuthService,
+    private notificationService: NotificationService,
     public permissions: PermissionsService
   ) {
     this.currentUser = this.authService.getCurrentUserEmail();
@@ -88,30 +99,59 @@ export class ReleasesComponent implements OnInit {
     this.appService.list(0, 100).subscribe({
       next: (response: any) => {
         this.applications = response.data?.data || [];
+        this.loadAllReleases();
       },
       error: (err) => console.error('Erro ao carregar aplicações:', err)
     });
   }
 
-  loadReleases(): void {
-    if (!this.selectedAppId) return;
-
+  loadAllReleases(): void {
     this.loading = true;
-    this.releaseService.list(this.selectedAppId, this.skip, this.limit).subscribe({
-      next: (response: any) => {
-        this.releases = response.data?.data || [];
-        this.total = response.data?.total || 0;
-        this.loading = false;
-        // Carregar contagem de aprovações para cada release
-        this.releases.forEach(release => {
-          this.loadApprovalCounts(release.id);
-        });
-      },
-      error: (err) => {
-        console.error('Erro ao carregar releases:', err);
-        this.loading = false;
-      }
+    const loadPromises = this.applications.map(app => 
+      this.releaseService.list(app.id, 0, 1000).toPromise()
+    );
+
+    Promise.all(loadPromises).then((responses: any[]) => {
+      this.releases = responses.flatMap((response: any) => response.data?.data || []);
+      this.applyFilter();
+      this.loading = false;
+      // Carregar contagem de aprovações para cada release
+      this.releases.forEach(release => {
+        this.loadApprovalCounts(release.id);
+      });
+    }).catch((err) => {
+      console.error('Erro ao carregar releases:', err);
+      this.loading = false;
     });
+  }
+
+  applyFilter(): void {
+    let filtered = this.releases;
+    
+    // Filtrar por aplicação
+    if (this.filterAppId) {
+      filtered = filtered.filter(r => r.applicationId === this.filterAppId);
+    }
+    
+    // Filtrar por status
+    if (this.filterStatus === 'ACTIVE') {
+      // Mostrar PENDING, APPROVED e releases em PROD (mesmo DEPLOYED)
+      filtered = filtered.filter(r => 
+        r.status === 'PENDING' || 
+        r.status === 'APPROVED' || 
+        r.env === 'PROD'
+      );
+    } else if (this.filterStatus !== 'ALL') {
+      filtered = filtered.filter(r => r.status === this.filterStatus);
+    }
+    
+    this.filteredReleases = filtered;
+    this.total = this.filteredReleases.length;
+  }
+
+  onFilterChange(): void {
+    this.skip = 0;
+    this.applyFilter();
   }
 
   loadApprovalCounts(releaseId: string): void {
@@ -132,20 +172,15 @@ export class ReleasesComponent implements OnInit {
     return this.approvalCounts.get(releaseId) || { approved: 0, rejected: 0 };
   }
 
-  onAppChange(): void {
-    this.skip = 0;
-    this.loadReleases();
-  }
-
   openForm(): void {
     if (!this.canCreate) {
-      alert('Você não tem permissão para criar releases');
+      this.notificationService.error('Você não tem permissão para criar releases');
       return;
     }
     this.isEditMode = false;
     this.editingReleaseId = null;
     this.formData = {
-      applicationId: this.selectedAppId,
+      applicationId: '',
       version: '',
       env: 'DEV',
       evidenceUrl: '',
@@ -156,7 +191,7 @@ export class ReleasesComponent implements OnInit {
 
   editRelease(release: Release): void {
     if (!this.canEdit) {
-      alert('Você não tem permissão para editar releases');
+      this.notificationService.error('Você não tem permissão para editar releases');
       return;
     }
     this.isEditMode = true;
@@ -178,66 +213,197 @@ export class ReleasesComponent implements OnInit {
   }
 
   save(): void {
-    if (!this.formData.version) {
-      alert('Versão é obrigatória');
+    if (!this.formData.version || !this.formData.applicationId) {
+      this.notificationService.warning('Versão e aplicação são obrigatórias');
       return;
     }
 
     if (this.isEditMode && this.editingReleaseId) {
-      this.formData.applicationId = this.selectedAppId;
       this.releaseService.update(this.editingReleaseId, this.formData).subscribe({
         next: () => {
-          this.loadReleases();
+          this.notificationService.success('Release atualizado com sucesso!');
+          this.loadAllReleases();
           this.closeForm();
         },
         error: (err) => {
           console.error('Erro ao atualizar:', err);
-          alert('Erro ao atualizar release');
+          const errorMsg = err.error?.error?.message || err.message || 'Erro desconhecido';
+          
+          // Traduzir mensagens específicas
+          if (errorMsg.includes('already exists')) {
+            const version = this.formData.version;
+            const envLabel = this.getEnvLabel(this.formData.env);
+            this.notificationService.error(`A versão ${version} já existe no ambiente ${envLabel}`);
+          } else if (errorMsg.includes('not found')) {
+            this.notificationService.error('Release não encontrado');
+          } else {
+            this.notificationService.error('Erro ao atualizar release: ' + errorMsg);
+          }
         }
       });
     } else {
-      this.formData.applicationId = this.selectedAppId;
       this.formData.actor = this.currentUser;
       this.releaseService.create(this.formData).subscribe({
         next: () => {
-          this.loadReleases();
+          this.notificationService.success('Release criado com sucesso!');
+          this.loadAllReleases();
           this.closeForm();
         },
-        error: (err) => console.error('Erro ao criar:', err)
+        error: (err) => {
+          console.error('Erro ao criar:', err);
+          const errorMsg = err.error?.error?.message || err.message || 'Erro desconhecido';
+          
+          // Traduzir mensagens específicas
+          if (errorMsg.includes('already exists')) {
+            const version = this.formData.version;
+            const envLabel = this.getEnvLabel(this.formData.env);
+            this.notificationService.error(`A versão ${version} já existe no ambiente ${envLabel}`);
+          } else {
+            this.notificationService.error('Erro ao criar release: ' + errorMsg);
+          }
+        }
       });
     }
   }
 
   delete(id: string): void {
     if (!this.canDelete) {
-      alert('Você não tem permissão para deletar releases');
+      this.notificationService.error('Você não tem permissão para deletar releases');
       return;
     }
     if (confirm('Tem certeza?')) {
       this.releaseService.delete(id).subscribe({
-        next: () => this.loadReleases(),
-        error: (err) => console.error('Erro ao deletar:', err)
+        next: () => {
+          this.notificationService.success('Release deletado com sucesso!');
+          this.loadAllReleases();
+        },
+        error: (err) => {
+          console.error('Erro ao deletar:', err);
+          this.notificationService.error('Erro ao deletar release');
+        }
       });
     }
+  }
+
+  reject(id: string): void {
+    console.log('reject called with id:', id);
+    this.rejectReleaseId = id;
+    this.rejectNotes = '';
+    this.showRejectModal = true;
+    console.log('showRejectModal:', this.showRejectModal);
+  }
+
+  confirmReject(): void {
+    if (!this.rejectReleaseId) return;
+    
+    this.releaseService.reject(this.rejectReleaseId, this.rejectNotes || 'Release rejeitada').subscribe({
+      next: () => {
+        this.notificationService.success('Release rejeitada com sucesso!');
+        this.closeRejectModal();
+        this.loadAllReleases();
+      },
+      error: (err) => {
+        console.error('Erro ao rejeitar:', err);
+        const errorMsg = err.error?.error?.message || err.message || 'Erro desconhecido';
+        
+        if (errorMsg.includes('not found')) {
+          this.notificationService.error('Release não encontrado');
+        } else if (errorMsg.includes('already')) {
+          this.notificationService.error('Release já foi rejeitada');
+        } else {
+          this.notificationService.error('Erro ao rejeitar: ' + errorMsg);
+        }
+      }
+    });
+  }
+
+  closeRejectModal(): void {
+    this.showRejectModal = false;
+    this.rejectReleaseId = null;
+    this.rejectNotes = '';
+  }
+
+  deploy(id: string): void {
+    console.log('deploy called with id:', id);
+    this.deployReleaseId = id;
+    this.showDeployModal = true;
+    console.log('showDeployModal:', this.showDeployModal);
+  }
+
+  confirmDeploy(): void {
+    if (!this.deployReleaseId) return;
+    
+    this.releaseService.deploy(this.deployReleaseId, 'Release implantada em produção').subscribe({
+      next: () => {
+        this.notificationService.success('Release implantada com sucesso! 🚀');
+        this.closeDeployModal();
+        this.loadAllReleases();
+      },
+      error: (err) => {
+        console.error('Erro ao implantar:', err);
+        const errorMsg = err.error?.error?.message || err.message || 'Erro desconhecido';
+        
+        if (errorMsg.includes('not found')) {
+          this.notificationService.error('Release não encontrado');
+        } else if (errorMsg.includes('not in PROD') || errorMsg.includes('Apenas releases em PROD')) {
+          this.notificationService.error('Apenas releases em Produção podem ser implantadas');
+        } else if (errorMsg.includes('not APPROVED') || errorMsg.includes('precisa estar APPROVED')) {
+          this.notificationService.error('Release precisa estar aprovada para ser implantada');
+        } else if (errorMsg.includes('already')) {
+          this.notificationService.error('Release já está implantada');
+        } else {
+          this.notificationService.error('Erro ao implantar: ' + errorMsg);
+        }
+      }
+    });
+  }
+
+  closeDeployModal(): void {
+    this.showDeployModal = false;
+    this.deployReleaseId = null;
   }
 
   previousPage(): void {
     if (this.skip >= this.limit) {
       this.skip -= this.limit;
-      this.loadReleases();
     }
   }
 
   nextPage(): void {
     if ((this.skip + this.limit) < this.total) {
       this.skip += this.limit;
-      this.loadReleases();
     }
   }
 
   onLimitChange(): void {
     this.skip = 0;
-    this.loadReleases();
+  }
+
+  get paginatedReleases(): Release[] {
+    return this.filteredReleases.slice(this.skip, this.skip + this.limit);
+  }
+
+  getApplicationName(applicationId: string): string {
+    return this.applications.find(a => a.id === applicationId)?.name || applicationId;
+  }
+
+  getStatusLabel(status: string): string {
+    const labels: { [key: string]: string } = {
+      'PENDING': 'Pendente',
+      'APPROVED': 'Aprovado',
+      'DEPLOYED': 'Implantado',
+      'REJECTED': 'Rejeitado'
+    };
+    return labels[status] || status;
+  }
+
+  getEnvLabel(env: string): string {
+    const labels: { [key: string]: string } = {
+      'DEV': 'Desenvolvimento',
+      'PRE_PROD': 'Pré-Produção',
+      'PROD': 'Produção'
+    };
+    return labels[env] || env;
   }
 
   get canPrevious(): boolean {
@@ -260,7 +426,7 @@ export class ReleasesComponent implements OnInit {
         console.error('Erro ao carregar timeline:', err);
         this.timeline = [];
         this.loading = false;
-        alert('Erro ao carregar timeline do release');
+        this.notificationService.error('Erro ao carregar timeline do release');
       }
     });
   }
@@ -272,7 +438,7 @@ export class ReleasesComponent implements OnInit {
 
   openPromoteModal(releaseId: string, env: string): void {
     if (!this.canPromote) {
-      alert('Você não tem permissão para promover releases');
+      this.notificationService.error('Você não tem permissão para promover releases');
       return;
     }
     this.promoteReleaseId = releaseId;
@@ -358,14 +524,38 @@ export class ReleasesComponent implements OnInit {
 
     this.releaseService.promote(this.promoteReleaseId, this.promoteTargetEnv, this.currentUser).subscribe({
       next: () => {
-        alert('Release promovido com sucesso!');
+        this.notificationService.success('Release promovido com sucesso! 🚀');
         this.closePromoteModal();
-        this.loadReleases();
+        this.loadAllReleases();
       },
       error: (err: any) => {
         console.error('Erro ao promover:', err);
-        alert('Erro ao promover release');
+        const errorMsg = err.error?.error?.message || err.message || 'Erro desconhecido';
+        
+        if (errorMsg.includes('already exists')) {
+          const envLabel = this.getEnvLabel(this.promoteTargetEnv);
+          this.notificationService.error(`Release já existe no ambiente ${envLabel}`);
+        } else if (errorMsg.includes('bloqueada') || errorMsg.includes('blocked')) {
+          this.notificationService.error('Promoção bloqueada: ' + errorMsg);
+        } else if (errorMsg.includes('freeze')) {
+          this.notificationService.error('Promoção bloqueada por janela de congelamento');
+        } else if (errorMsg.includes('approval')) {
+          this.notificationService.error('Faltam aprovações necessárias para promover');
+        } else if (errorMsg.includes('score')) {
+          this.notificationService.error('Score de evidência insuficiente para promover');
+        } else {
+          this.notificationService.error('Erro ao promover: ' + errorMsg);
+        }
       }
     });
+  }
+
+  toggleMenu(releaseId: string, event: Event): void {
+    event.stopPropagation();
+    this.openMenuId = this.openMenuId === releaseId ? null : releaseId;
+  }
+
+  closeMenu(): void {
+    this.openMenuId = null;
   }
 }
