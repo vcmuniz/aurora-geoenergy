@@ -2,9 +2,11 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApplicationService } from '@core/services/application.service';
+import { ReleaseService } from '@core/services/release.service';
 import { AuthService } from '@core/services/auth.service';
 import { PermissionsService } from '@core/services/permissions.service';
 import { Application, ApplicationRequest } from '@shared/models/application.model';
+import { Release } from '@shared/models/release.model';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -19,7 +21,11 @@ export class ApplicationsComponent implements OnInit {
   applications: Application[] = [];
   loading = false;
   showForm = false;
+  showDetailsModal = false;
   editingId: string | null = null;
+  selectedApp: Application | null = null;
+  selectedAppReleases: Release[] = [];
+  loadingReleases = false;
 
   formData: ApplicationRequest = {
     name: '',
@@ -38,6 +44,7 @@ export class ApplicationsComponent implements OnInit {
 
   constructor(
     private appService: ApplicationService,
+    private releaseService: ReleaseService,
     public permissions: PermissionsService
   ) {}
 
@@ -160,5 +167,36 @@ export class ApplicationsComponent implements OnInit {
 
   get canNext(): boolean {
     return (this.skip + this.limit) < this.total;
+  }
+
+  viewDetails(app: Application): void {
+    this.selectedApp = app;
+    this.showDetailsModal = true;
+    this.loadReleases(app.id);
+  }
+
+  loadReleases(appId: string): void {
+    this.loadingReleases = true;
+    this.releaseService.list(appId, 0, 1000).subscribe({
+      next: (response: any) => {
+        this.selectedAppReleases = response.data?.data || [];
+        this.loadingReleases = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar releases:', err);
+        this.selectedAppReleases = [];
+        this.loadingReleases = false;
+      }
+    });
+  }
+
+  closeDetailsModal(): void {
+    this.showDetailsModal = false;
+    this.selectedApp = null;
+    this.selectedAppReleases = [];
+  }
+
+  getReleasesByEnv(env: string): Release[] {
+    return this.selectedAppReleases.filter(r => r.env === env);
   }
 }
