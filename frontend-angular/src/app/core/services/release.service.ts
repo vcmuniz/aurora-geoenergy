@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { 
   Release, 
   ReleaseRequest, 
@@ -8,6 +8,7 @@ import {
   PreLaunchChecklist, 
   ReleaseTimeline 
 } from '@shared/models/release.model';
+import { ApprovalService } from './approval.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,10 @@ import {
 export class ReleaseService {
   private apiUrl = 'http://localhost:3000/api/releases';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private approvalService: ApprovalService
+  ) {}
 
   list(appId: string, skip: number = 0, limit: number = 100): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/application/${appId}?skip=${skip}&limit=${limit}`);
@@ -30,7 +34,9 @@ export class ReleaseService {
   }
 
   create(request: ReleaseRequest): Observable<any> {
-    return this.http.post<any>(this.apiUrl, request);
+    return this.http.post<any>(this.apiUrl, request).pipe(
+      tap(() => this.approvalService.notifyChange())
+    );
   }
 
   update(id: string, request: ReleaseRequest): Observable<any> {
@@ -54,6 +60,20 @@ export class ReleaseService {
   }
 
   promote(releaseId: string, targetEnv: string, actor: string = 'system'): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/${releaseId}/promote`, { targetEnv, actor });
+    return this.http.post<any>(`${this.apiUrl}/${releaseId}/promote`, { targetEnv, actor }).pipe(
+      tap(() => this.approvalService.notifyChange())
+    );
+  }
+
+  reject(releaseId: string, notes: string = ''): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${releaseId}/reject`, { notes }).pipe(
+      tap(() => this.approvalService.notifyChange())
+    );
+  }
+
+  deploy(releaseId: string, notes: string = ''): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${releaseId}/deploy`, { notes }).pipe(
+      tap(() => this.approvalService.notifyChange())
+    );
   }
 }
