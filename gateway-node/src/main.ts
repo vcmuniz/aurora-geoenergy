@@ -33,7 +33,7 @@ try {
 
   app.use(requestIdMiddleware);
   app.use(metricsMiddleware);
-  app.use(rateLimitByIp);
+  // app.use(rateLimitByIp); // Desabilitado temporariamente
 
   const backendClient = new AxiosBackendClient(config.backendUrl);
 
@@ -42,7 +42,7 @@ try {
   app.use(createAuthRoutes(backendClient));
 
   app.use(authMiddleware);
-  app.use(rateLimitByUser);
+  // app.use(rateLimitByUser); // Desabilitado temporariamente
 
   app.use(createPromotionRoutes(backendClient));
   app.use('/api', createProxyRoutes(backendClient));

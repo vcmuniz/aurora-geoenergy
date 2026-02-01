@@ -11,7 +11,6 @@ const logger_1 = require("./core/logger");
 const requestIdMiddleware_1 = require("./presentation/middleware/requestIdMiddleware");
 const metricsMiddleware_1 = require("./presentation/middleware/metricsMiddleware");
 const authMiddleware_1 = require("./presentation/middleware/authMiddleware");
-const rateLimitMiddleware_1 = require("./presentation/middleware/rateLimitMiddleware");
 const errorHandlerMiddleware_1 = require("./presentation/middleware/errorHandlerMiddleware");
 const healthRoutes_1 = require("./presentation/routes/healthRoutes");
 const swaggerRoutes_1 = require("./presentation/routes/swaggerRoutes");
@@ -33,13 +32,13 @@ try {
     app.use(express_1.default.urlencoded({ limit: '10mb', extended: true }));
     app.use(requestIdMiddleware_1.requestIdMiddleware);
     app.use(metricsMiddleware_1.metricsMiddleware);
-    app.use(rateLimitMiddleware_1.rateLimitByIp);
+    // app.use(rateLimitByIp); // Desabilitado temporariamente
     const backendClient = new AxiosBackendClient_1.AxiosBackendClient(config.backendUrl);
     app.use((0, healthRoutes_1.createHealthRoutes)());
     app.use((0, swaggerRoutes_1.createSwaggerRoutes)());
     app.use((0, authRoutes_1.createAuthRoutes)(backendClient));
     app.use(authMiddleware_1.authMiddleware);
-    app.use(rateLimitMiddleware_1.rateLimitByUser);
+    // app.use(rateLimitByUser); // Desabilitado temporariamente
     app.use((0, promotionRoutes_1.createPromotionRoutes)(backendClient));
     app.use('/api', (0, proxyRoutes_1.createProxyRoutes)(backendClient));
     app.use(errorHandlerMiddleware_1.errorHandlerMiddleware);

@@ -231,6 +231,56 @@ function createProxyRoutes(backendClient) {
      *       409:
      *         description: Conflito de versão
      *
+     * /api/releases/{release_id}/reject:
+     *   post:
+     *     summary: Rejeitar release
+     *     description: Rejeita uma release (muda status para REJECTED)
+     *     tags: [Releases]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: release_id
+     *         required: true
+     *         schema: { type: string }
+     *     requestBody:
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               notes: { type: string }
+     *     responses:
+     *       200:
+     *         description: Release rejeitada com sucesso
+     *       400:
+     *         description: Erro ao rejeitar release
+     *
+     * /api/releases/{release_id}/deploy:
+     *   post:
+     *     summary: Implantar release em produção
+     *     description: Marca release em PROD como implantada (DEPLOYED)
+     *     tags: [Releases]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: release_id
+     *         required: true
+     *         schema: { type: string }
+     *     requestBody:
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               notes: { type: string }
+     *     responses:
+     *       200:
+     *         description: Release implantada com sucesso
+     *       400:
+     *         description: Erro ao implantar (não está em PROD ou não está APPROVED)
+     *
      * /api/releases/{release_id}/status:
      *   put:
      *     summary: Atualizar status do release
