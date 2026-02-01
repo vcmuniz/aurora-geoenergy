@@ -287,6 +287,106 @@ class ReleaseUseCase:
         self.session.commit()
         return ReleaseResponse.from_orm(promoted)
 
+    def reject_release(self, release_id: UUID, notes: str = None) -> ReleaseResponse:
+        """Rejeitar uma release (muda status para REJECTED)"""
+        release = self.repo.get_by_id(release_id)
+        if not release:
+            raise ValueError(f"Release {release_id} not found")
+        
+        if release.status == 'REJECTED':
+            raise ValueError(f"Release já está rejeitada")
+        
+        # Carregar informações da aplicação
+        application = self.app_repo.get_by_id(release.application_id)
+        app_name = application.name if application else "Unknown"
+        
+        # Atualizar status para REJECTED
+        self.repo.update_status(release_id, 'REJECTED')
+        
+        # Criar evento
+        self.event_repo.create(
+            release_id=release_id,
+            event_type='REJECTED',
+            status='REJECTED',
+            actor_email=self.actor_email,
+            notes=notes or "Release rejeitada"
+        )
+        
+        # Log de auditoria
+        self.audit_repo.create(
+            actor=self.actor_email,
+            action="REJECT_RELEASE",
+            entity="RELEASE",
+            entity_id=release_id,
+            payload={
+                "release_id": str(release_id),
+                "version": release.version,
+                "environment": release.env,
+                "application_id": str(release.application_id),
+                "application_name": app_name,
+                "notes": notes
+            }
+        )
+        
+        self.session.commit()
+        
+        # Retornar release atualizada
+        updated_release = self.repo.get_by_id(release_id)
+        return ReleaseResponse.from_orm(updated_release)
+
+    def deploy_release(self, release_id: UUID, notes: str = None) -> ReleaseResponse:
+        """Marcar uma release como implantada (DEPLOYED)"""
+        release = self.repo.get_by_id(release_id)
+        if not release:
+            raise ValueError(f"Release {release_id} not found")
+        
+        if release.env != 'PROD':
+            raise ValueError(f"Apenas releases em PROD podem ser implantadas")
+        
+        if release.status == 'DEPLOYED':
+            raise ValueError(f"Release já está implantada")
+        
+        if release.status != 'APPROVED':
+            raise ValueError(f"Release precisa estar APPROVED para ser implantada")
+        
+        # Carregar informações da aplicação
+        application = self.app_repo.get_by_id(release.application_id)
+        app_name = application.name if application else "Unknown"
+        
+        # Atualizar status para DEPLOYED
+        self.repo.update_status(release_id, 'DEPLOYED')
+        
+        # Criar evento
+        self.event_repo.create(
+            release_id=release_id,
+            event_type='DEPLOYED',
+            status='DEPLOYED',
+            actor_email=self.actor_email,
+            notes=notes or "Release implantada em produção"
+        )
+        
+        # Log de auditoria
+        self.audit_repo.create(
+            actor=self.actor_email,
+            action="DEPLOY",
+            entity="RELEASE",
+            entity_id=release_id,
+            payload={
+                "release_id": str(release_id),
+                "version": release.version,
+                "environment": release.env,
+                "application_id": str(release.application_id),
+                "application_name": app_name,
+                "notes": notes
+            }
+        )
+        
+        self.session.commit()
+        
+        # Retornar release atualizada
+        updated_release = self.repo.get_by_id(release_id)
+        return ReleaseResponse.from_orm(updated_release)
+
     def delete(self, release_id: UUID) -> bool:
         deleted = self.repo.delete(release_id)
         if not deleted:
