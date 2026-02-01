@@ -52,6 +52,7 @@ export class ReleasesComponent implements OnInit {
   canEdit = false;
   canDelete = false;
   canPromote = false;
+  canReject = false;
 
   formData: ReleaseRequest = {
     applicationId: '',
@@ -93,6 +94,7 @@ export class ReleasesComponent implements OnInit {
     this.canEdit = this.permissions.canEditRelease();
     this.canDelete = this.permissions.canDeleteRelease();
     this.canPromote = this.permissions.canPromoteRelease();
+    this.canReject = this.permissions.canRejectRelease();
   }
 
   loadApplications(): void {

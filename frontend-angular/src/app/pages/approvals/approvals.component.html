@@ -43,9 +43,8 @@
           <td>{{ approval.release.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
           <td>
             <button 
-              *ngIf="selectedFilter === 'pendentes'"
+              *ngIf="selectedFilter === 'pendentes' && canApprove"
               (click)="openApprovalModal(approval, 'approve')"
-              [disabled]="!canApprove"
               class="btn-icon"
               title="Aprovar">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,9 +52,8 @@
               </svg>
             </button>
             <button 
-              *ngIf="selectedFilter === 'pendentes'"
+              *ngIf="selectedFilter === 'pendentes' && canReject"
               (click)="openApprovalModal(approval, 'reject')"
-              [disabled]="!canReject"
               class="btn-icon btn-icon-danger"
               title="Rejeitar">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

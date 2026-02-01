@@ -32,7 +32,7 @@
         </select>
       </div>
     </div>
-    <button (click)="openForm()" [disabled]="!canCreate" class="btn-new">+ Novo Release</button>
+    <button (click)="openForm()" *ngIf="canCreate" class="btn-new">+ Novo Release</button>
   </div>
 
   <div *ngIf="loading" class="loading">Carregando...</div>
@@ -77,22 +77,22 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
           </button>
-          <button *ngIf="release.status !== 'DEPLOYED' && release.status !== 'REJECTED'" (click)="editRelease(release)" [disabled]="!canEdit" class="btn-icon" title="Editar">
+          <button *ngIf="canEdit && release.status !== 'DEPLOYED' && release.status !== 'REJECTED'" (click)="editRelease(release)" class="btn-icon" title="Editar">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
             </svg>
           </button>
-          <button *ngIf="release.env !== 'PROD' && release.status !== 'REJECTED' && release.status !== 'DEPLOYED'" (click)="openPromoteModal(release.id, release.env)" [disabled]="!canPromote" class="btn-icon" title="Promover">
+          <button *ngIf="canPromote && release.env !== 'PROD' && release.status !== 'REJECTED' && release.status !== 'DEPLOYED'" (click)="openPromoteModal(release.id, release.env)" class="btn-icon" title="Promover">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
             </svg>
           </button>
-          <button *ngIf="release.env === 'PROD' && release.status === 'APPROVED'" (click)="deploy(release.id)" class="btn-icon btn-icon-success" title="Implantar">
+          <button *ngIf="canPromote && release.env === 'PROD' && release.status === 'APPROVED'" (click)="deploy(release.id)" class="btn-icon btn-icon-success" title="Implantar">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
             </svg>
           </button>
-          <button *ngIf="release.status === 'PENDING' || release.status === 'APPROVED'" (click)="reject(release.id)" class="btn-icon btn-icon-danger" title="Rejeitar">
+          <button *ngIf="canReject && (release.status === 'PENDING' || release.status === 'APPROVED')" (click)="reject(release.id)" class="btn-icon btn-icon-danger" title="Rejeitar">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
