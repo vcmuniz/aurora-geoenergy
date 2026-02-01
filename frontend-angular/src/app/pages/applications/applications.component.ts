@@ -199,4 +199,23 @@ export class ApplicationsComponent implements OnInit {
   getReleasesByEnv(env: string): Release[] {
     return this.selectedAppReleases.filter(r => r.env === env);
   }
+
+  getEnvLabel(env: string): string {
+    const labels: { [key: string]: string } = {
+      'DEV': 'Desenvolvimento',
+      'PRE_PROD': 'Pré-Produção',
+      'PROD': 'Produção'
+    };
+    return labels[env] || env;
+  }
+
+  getStatusLabel(status: string): string {
+    const labels: { [key: string]: string } = {
+      'PENDING': 'Pendente',
+      'APPROVED': 'Aprovado',
+      'REJECTED': 'Rejeitado',
+      'DEPLOYED': 'Implantado'
+    };
+    return labels[status] || status;
+  }
 }
