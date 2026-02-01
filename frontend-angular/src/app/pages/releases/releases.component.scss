@@ -1010,3 +1010,174 @@ h1 {
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
   }
 }
+
+
+.modal-view-release {
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  .modal-body {
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+  }
+}
+
+.detail-section {
+  margin-bottom: 30px;
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+
+  h3 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 10px;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.detail-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.detail-value {
+  color: #1f2937;
+  font-size: 14px;
+  word-break: break-word;
+
+  a {
+    color: #3b82f6;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.loading-small {
+  padding: 20px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.empty-small {
+  padding: 20px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.approvals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.approval-item {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 15px;
+  transition: all 0.2s;
+
+  &.approved {
+    border-color: #10b981;
+    background: #f0fdf4;
+  }
+
+  &.rejected {
+    border-color: #ef4444;
+    background: #fef2f2;
+  }
+}
+
+.approval-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.approval-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 14px;
+
+  .approved & {
+    background: #10b981;
+    color: white;
+  }
+
+  .rejected & {
+    background: #ef4444;
+    color: white;
+  }
+}
+
+.approval-outcome {
+  font-weight: 600;
+  font-size: 14px;
+
+  .approved & {
+    color: #059669;
+  }
+
+  .rejected & {
+    color: #dc2626;
+  }
+}
+
+.approval-details {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.approval-date {
+  color: #9ca3af;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.approval-notes {
+  margin-top: 8px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+  font-style: italic;
+  color: #6b7280;
+}
