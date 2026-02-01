@@ -94,7 +94,9 @@ export class AuditLogsComponent implements OnInit {
       'DELETE': '🗑️ Deletar',
       'APPROVE': '✅ Aprovar',
       'REJECT': '❌ Rejeitar',
-      'PROMOTE': '⬆️ Promover'
+      'PROMOTE': '⬆️ Promover',
+      'DEPLOY': '☁️ Implantar',
+      'REJECT_RELEASE': '❌ Rejeitar'
     };
     return labels[action] || action;
   }
@@ -106,7 +108,9 @@ export class AuditLogsComponent implements OnInit {
       'DELETE': 'delete',
       'APPROVE': 'approve',
       'REJECT': 'reject',
-      'PROMOTE': 'promote'
+      'PROMOTE': 'promote',
+      'DEPLOY': 'deploy',
+      'REJECT_RELEASE': 'reject'
     };
     return colors[action] || 'default';
   }
@@ -130,6 +134,12 @@ export class AuditLogsComponent implements OnInit {
       if (action === 'REJECT') {
         return `Rejeitou release v${payload.version} (${payload.environment})`;
       }
+      if (action === 'REJECT_RELEASE') {
+        return `Rejeitou release v${payload.version} (${payload.environment})`;
+      }
+      if (action === 'DEPLOY') {
+        return `Implantou release v${payload.version} em ${payload.environment}`;
+      }
       if (action === 'PROMOTE') {
         const toEnv = payload.to_env || payload.environment || 'ambiente';
         const fromEnv = payload.from_env || '';
@@ -140,14 +150,17 @@ export class AuditLogsComponent implements OnInit {
     }
 
     // Fallback: tenta buscar do cache de releases
-    if ((action === 'APPROVE' || action === 'REJECT' || action === 'PROMOTE' || action === 'UPDATE') && payload.release_id) {
+    if ((action === 'APPROVE' || action === 'REJECT' || action === 'REJECT_RELEASE' || action === 'DEPLOY' || action === 'PROMOTE' || action === 'UPDATE') && payload.release_id) {
       const release = this.releaseCache.get(payload.release_id);
       if (release) {
         if (action === 'APPROVE') {
           return `Aprovou release v${release.version} (${release.env})`;
         }
-        if (action === 'REJECT') {
+        if (action === 'REJECT' || action === 'REJECT_RELEASE') {
           return `Rejeitou release v${release.version} (${release.env})`;
+        }
+        if (action === 'DEPLOY') {
+          return `Implantou release v${release.version} em ${release.env}`;
         }
         if (action === 'UPDATE') {
           return `Atualizou release v${release.version} (${release.env})`;

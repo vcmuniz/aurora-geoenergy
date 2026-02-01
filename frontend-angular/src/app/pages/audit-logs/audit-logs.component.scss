@@ -42,15 +42,21 @@ h1 {
   th, td {
     padding: 16px 20px;
     text-align: left;
+
+    &:last-child {
+      text-align: right;
+      white-space: nowrap;
+      width: 80px;
+    }
   }
 
   th {
-    background: linear-gradient(135deg, #667eea 0%, #5568d3 100%);
+    background-color: #667eea;
     color: white;
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-size: 13px;
+    font-size: 14px;
     border-bottom: none;
   }
 
@@ -91,6 +97,7 @@ h1 {
   font-weight: 600;
   font-size: 12px;
   transition: all 0.3s ease;
+  white-space: nowrap;
 
   &.action-create {
     background-color: #c6f6d5;
@@ -122,6 +129,11 @@ h1 {
     color: #7c2d12;
   }
 
+  &.action-deploy {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+
   &.action-default {
     background-color: #e2e8f0;
     color: #2d3748;
@@ -147,6 +159,36 @@ h1 {
 
   &:active {
     transform: translateY(0);
+  }
+}
+
+.btn-icon {
+  background-color: #f0f4ff;
+  border: 1px solid #e0e7ff;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: #667eea;
+    transition: color 0.2s ease;
+  }
+
+  &:hover {
+    background-color: #667eea;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+
+    svg {
+      color: white;
+    }
   }
 }
 
