@@ -104,6 +104,10 @@ class PolicyService:
         """Retorna minScore obrigatório"""
         return self.min_score
 
+    def get_policy(self) -> Dict:
+        """Retorna o dicionário da policy completa"""
+        return self.policy
+
     def is_frozen_for_env(self, env: str) -> bool:
         """Verifica se ambiente está em freeze window agora"""
         for window in self.freeze_windows:
