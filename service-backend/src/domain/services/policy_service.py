@@ -19,10 +19,18 @@ class FreezeWindow:
         now = datetime.now(tz)
         current_time = now.strftime("%H:%M")
         
+        print(f"[FREEZE DEBUG] Checking {self.env}: current={current_time}, window={self.start}-{self.end}, tz={self.timezone_name}")
+        
         if self.start < self.end:
-            return self.start <= current_time <= self.end
+            # Normal window (e.g., 08:00 - 18:00)
+            is_frozen = self.start <= current_time <= self.end
+            print(f"[FREEZE DEBUG] Normal window: {is_frozen}")
+            return is_frozen
         else:
-            return current_time >= self.start or current_time <= self.end
+            # Wraparound window (e.g., 22:00 - 06:00)
+            is_frozen = current_time >= self.start or current_time <= self.end
+            print(f"[FREEZE DEBUG] Wraparound window: {is_frozen} (>={self.start}: {current_time >= self.start}, <={self.end}: {current_time <= self.end})")
+            return is_frozen
 
     def __repr__(self):
         return f"FreezeWindow({self.env} {self.start}-{self.end} {self.timezone_name})"

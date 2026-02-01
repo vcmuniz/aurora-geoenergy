@@ -2,13 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '@core/services/auth.service';
+import { ToastComponent } from '@shared/components/toast/toast.component';
 import { map } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, RouterLink],
+  imports: [RouterOutlet, CommonModule, RouterLink, ToastComponent],
   template: `
+    <app-toast></app-toast>
     <div class="app-layout" [class.authenticated]="isAuthenticated$ | async">
       <aside class="sidebar" *ngIf="isAuthenticated$ | async">
         <div class="sidebar-header">
