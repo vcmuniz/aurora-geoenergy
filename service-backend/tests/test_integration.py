@@ -7,7 +7,6 @@ from uuid import uuid4, UUID
 
 from src.infrastructure.orm.application import ApplicationORM
 from src.infrastructure.orm.audit_log import AuditLogORM
-from src.infrastructure.orm.release_event import ReleaseEventORM
 
 from src.application.usecases.release_usecase import ReleaseUseCase
 from src.application.usecases.approval_usecase import ApprovalUseCase
@@ -20,7 +19,7 @@ def sample_application(test_db):
     """Criar aplicação de teste"""
     app = ApplicationORM(
         id=uuid4(),
-        name="test-app",
+        name="test-app-e2e",
         owner_team="engineering",
         repo_url="https://github.com/example/test-app"
     )
@@ -30,9 +29,72 @@ def sample_application(test_db):
 
 
 class TestIntegrationE2E:
-    """Teste de integração completo conforme requisito do desafio (Item 8)"""
+    """Teste de integração E2E conforme Item 8 do desafio"""
     
     def test_complete_release_workflow_with_policy_validation(self, test_db, sample_application):
+        """
+        Teste E2E completo conforme Item 8 do desafio:
+        1. Criar release em DEV com evidence_url
+        2. Promover DEV → PRE_PROD (sem requisitos)
+        3. Aprovar release em PRE_PROD (minApprovals)
+        4. Promover PRE_PROD → PROD (validando policy: score >= 70, approvals >= 1)
+        
+        Este teste cobre o fluxo completo incluindo validações de policy.
+        """
+        # ===== PHASE 1: CREATE RELEASE IN DEV =====
+        release_request = ReleaseRequest(
+            application_id=str(sample_application.id),
+            version="v1.0.0",
+            environment="DEV",
+            evidence_url="https://ci.example.com/test-PASS-report.json"  # Score alto (>=70)
+        )
+        
+        release_usecase = ReleaseUseCase(test_db, actor_email="dev@aurora.local")
+        release = release_usecase.create(release_request)
+        
+        # Validações Phase 1
+        assert release.version == "v1.0.0"
+        assert release.environment == "DEV"
+        assert release.evidence_score >= 70  # Score suficiente para PROD
+        
+        # ===== PHASE 2: PROMOTE DEV -> PRE_PROD =====
+        promoted_release = release_usecase.promote(release.id, "PRE_PROD")
+        
+        # Validações Phase 2
+        assert promoted_release.environment == "PRE_PROD"
+        
+        # ===== PHASE 3: APPROVE IN PRE_PROD =====
+        approval_request = ApprovalRequest(
+            approverEmail="approver@aurora.local",
+            notes="Release aprovado para PROD"
+        )
+        
+        approval_usecase = ApprovalUseCase(test_db, actor_email="approver@aurora.local")
+        approval = approval_usecase.create(
+            release_id=UUID(release.id),
+            approver_email="approver@aurora.local",
+            request=approval_request
+        )
+        
+        # Validações Phase 3
+        assert approval.approver_email == "approver@aurora.local"
+        test_db.commit()  # Garantir persistência
+        
+        # ===== PHASE 4: PROMOTE PRE_PROD -> PROD (VALIDAÇÕES DE POLICY) =====
+        # Policy valida: minApprovals (OK=1), minScore (OK>=70), freezeWindow (OK fora do horário)
+        final_release = release_usecase.promote(release.id, "PROD")
+        
+        # Validações Phase 4
+        assert final_release.environment == "PROD"
+        
+        # Verificar audit logs foram criados
+        audit_logs = test_db.query(AuditLogORM).all()
+        assert len(audit_logs) >= 2  # CREATE + PROMOTE
+        
+        actions = [log.action for log in audit_logs]
+        assert "CREATE" in actions
+        assert "PROMOTE" in actions
+
         """
         Teste E2E completo conforme Item 8:
         1. Criar release em DEV com evidence_url
