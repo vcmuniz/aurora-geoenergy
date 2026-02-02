@@ -164,7 +164,8 @@ export class ReleasesComponent implements OnInit {
     this.approvalService.list(0, 1000).subscribe({
       next: (response: any) => {
         console.log('[ReleasesComponent] Response completo:', response);
-        const allApprovals = response.data?.data || [];
+        // CORRIGIDO: response.data já é o array, não response.data.data
+        const allApprovals = response.data || [];
         console.log('[ReleasesComponent] Total de aprovações:', allApprovals.length);
         console.log('[ReleasesComponent] Primeiras 3 aprovações:', allApprovals.slice(0, 3));
         
