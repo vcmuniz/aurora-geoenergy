@@ -127,7 +127,37 @@ function createProxyRoutes(backendClient) {
      *         schema: { type: string, enum: [DEV, PRE_PROD, PROD] }
      *     responses:
      *       200:
-     *         description: Lista de releases
+     *         description: Lista de releases com contagem de aprovações e rejeições
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success: { type: boolean }
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     data:
+     *                       type: array
+     *                       items:
+     *                         type: object
+     *                         properties:
+     *                           id: { type: string }
+     *                           applicationId: { type: string }
+     *                           applicationName: { type: string }
+     *                           version: { type: string }
+     *                           env: { type: string, enum: [DEV, PRE_PROD, PROD] }
+     *                           status: { type: string, enum: [PENDING, APPROVED, DEPLOYED, REJECTED] }
+     *                           evidenceUrl: { type: string }
+     *                           evidenceScore: { type: integer }
+     *                           versionRow: { type: integer }
+     *                           approvalCount: { type: integer, description: 'Número de aprovações' }
+     *                           rejectionCount: { type: integer, description: 'Número de rejeições' }
+     *                           createdAt: { type: string, format: date-time }
+     *                           deployedAt: { type: string, format: date-time }
+     *                     total: { type: integer }
+     *                     skip: { type: integer }
+     *                     limit: { type: integer }
      *   post:
      *     summary: Criar release
      *     tags: [Releases]
