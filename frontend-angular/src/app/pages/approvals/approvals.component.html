@@ -31,6 +31,7 @@
           <th>Aplicação</th>
           <th>Release</th>
           <th>Ambiente</th>
+          <th>Score</th>
           <th>Criada em</th>
           <th>Ações</th>
         </tr>
@@ -40,6 +41,14 @@
           <td><strong>{{ approval.release.applicationName || 'Unknown' }}</strong></td>
           <td>{{ getReleaseVersion(approval.release) }}</td>
           <td>{{ approval.release.env }}</td>
+          <td>
+            <div class="score-badge">
+              <strong>{{ approval.release.evidenceScore || 0 }}%</strong>
+              <div class="score-bar">
+                <div class="score-fill" [style.width.%]="approval.release.evidenceScore || 0"></div>
+              </div>
+            </div>
+          </td>
           <td>{{ approval.release.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
           <td>
             <button 

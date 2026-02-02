@@ -2,7 +2,7 @@ minApprovals: 1
 minScore: 70
 freezeWindows:
   - env: PROD
-    start: "22:00"
-    end: "23:00"
+    start: "06:00"
+    end: "08:00"
     timezone: "America/Sao_Paulo"
 timezone: "America/Sao_Paulo"
