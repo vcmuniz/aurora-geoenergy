@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Enum as SQLEnum, DateTime
 from sqlalchemy.dialects.postgresql import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 from src.infrastructure.database import Base
@@ -15,7 +15,7 @@ class UserORM(Base):
     name = Column(String(255), nullable=False)
     password_hash = Column(String(255), nullable=False)
     role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.VIEWER)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<UserORM {self.email} - {self.role}>"
