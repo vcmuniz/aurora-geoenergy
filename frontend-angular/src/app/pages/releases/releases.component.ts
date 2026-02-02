@@ -157,66 +157,6 @@ export class ReleasesComponent implements OnInit {
     this.applyFilter();
   }
 
-  loadAllApprovalCounts(): void {
-    // Buscar TODAS as aprovações de uma vez só
-    this.approvalService.list(0, 1000).subscribe({
-      next: (response: any) => {
-        console.log('[ReleasesComponent] Response completo:', response);
-        // CORRIGIDO: response.data já é o array, não response.data.data
-        const allApprovals = response.data || [];
-        console.log('[ReleasesComponent] Total de aprovações:', allApprovals.length);
-        console.log('[ReleasesComponent] Primeiras 3 aprovações:', allApprovals.slice(0, 3));
-        
-        // Agrupar por release_id e contar
-        const countsByRelease = new Map<string, { approved: number; rejected: number }>();
-        
-        allApprovals.forEach((approval: any) => {
-          // Tentar ambos os formatos: releaseId e release_id
-          const releaseId = approval.releaseId || approval.release_id;
-          
-          if (!releaseId) {
-            console.warn('[ReleasesComponent] Aprovação sem releaseId:', approval);
-            return;
-          }
-          
-          if (!countsByRelease.has(releaseId)) {
-            countsByRelease.set(releaseId, { approved: 0, rejected: 0 });
-          }
-          
-          const counts = countsByRelease.get(releaseId)!;
-          if (approval.outcome === 'APPROVED') {
-            counts.approved++;
-          } else if (approval.outcome === 'REJECTED') {
-            counts.rejected++;
-          }
-        });
-        
-        console.log('[ReleasesComponent] Contagens por release:', Array.from(countsByRelease.entries()));
-        
-        // Atualizar o Map de contagem
-        this.approvalCounts = countsByRelease;
-      },
-      error: (err) => console.error('Erro ao carregar aprovações:', err)
-    });
-  }
-
-  loadApprovalCounts(releaseId: string): void {
-    this.approvalService.listByReleaseId(releaseId).subscribe({
-      next: (response: any) => {
-        const approvals = response.data || [];
-        const approved = approvals.filter((a: any) => a.outcome === 'APPROVED').length;
-        const rejected = approvals.filter((a: any) => a.outcome === 'REJECTED').length;
-        
-        this.approvalCounts.set(releaseId, { approved, rejected });
-      },
-      error: (err) => console.error('Erro ao carregar contagem de aprovações:', err)
-    });
-  }
-
-  getApprovalCounts(releaseId: string): { approved: number; rejected: number } {
-    return this.approvalCounts.get(releaseId) || { approved: 0, rejected: 0 };
-  }
-
   openForm(): void {
     if (!this.canCreate) {
       this.notificationService.error('Você não tem permissão para criar releases');
