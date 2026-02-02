@@ -14,8 +14,9 @@ def test_login_success(client, test_db):
     
     assert response.status_code == 200
     data = response.json()
-    assert 'access_token' in data
-    assert data['token_type'] == 'bearer'
+    assert 'data' in data
+    assert 'access_token' in data['data']
+    assert data['data']['token_type'] == 'bearer'
 
 
 def test_login_invalid_email(client, test_db):
@@ -53,7 +54,7 @@ def test_get_me_with_token(client, test_db):
         'email': 'teste@example.com',
         'password': 'senha123'
     })
-    token = login_response.json()['access_token']
+    token = login_response.json()['data']['access_token']
     
     # Get me
     response = client.get(
@@ -63,8 +64,10 @@ def test_get_me_with_token(client, test_db):
     
     assert response.status_code == 200
     data = response.json()
-    assert data['email'] == 'teste@example.com'
-    assert data['name'] == 'Teste User'
+    # Response está encapsulada em {success, data, error, requestId}
+    assert 'data' in data
+    assert data['data']['email'] == 'teste@example.com'
+    assert data['data']['name'] == 'Teste User'
 
 
 def test_get_me_without_token(client):
