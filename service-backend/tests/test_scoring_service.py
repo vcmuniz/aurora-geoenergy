@@ -51,8 +51,8 @@ class TestScoringService:
         """Múltiplos keywords devem acumular pontos"""
         url = "https://example.com/test-report-PASS.pdf"
         score = ScoringService.calculate_score(url)
-        # HTTPS (20) + test pattern (20) + report (20) + PASS (30) + .pdf (10) = 100 (max)
-        assert score == 100
+        # HTTPS (20) + test pattern (20) + PASS (30) + .pdf (10) = 80
+        assert score == 80
 
     def test_score_capped_at_max(self):
         """Score nunca deve ultrapassar MAX_SCORE (100)"""

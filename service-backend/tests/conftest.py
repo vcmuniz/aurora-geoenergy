@@ -3,27 +3,39 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event, String, TypeDecorator
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.dialects import postgresql
 import uuid
 
-from main import app
-from src.infrastructure.database import Base, get_db
-from src.infrastructure.orm.user import UserORM
+# Monkey patch PostgreSQL UUID to work with SQLite
+original_uuid = postgresql.UUID
 
-
-class StringUUID(TypeDecorator):
-    """Platform-independent GUID type for SQLite"""
-    impl = String(36)
+class SQLiteUUID(TypeDecorator):
+    """UUID type for SQLite"""
+    impl = String
     cache_ok = True
-
+    
+    def __init__(self, as_uuid=False):
+        super().__init__(36)
+        self.as_uuid = as_uuid
+    
     def process_bind_param(self, value, dialect):
         if value is None:
             return None
         return str(value)
-
+    
     def process_result_value(self, value, dialect):
         if value is None:
             return None
-        return uuid.UUID(value) if isinstance(value, str) else value
+        if self.as_uuid:
+            return uuid.UUID(value) if isinstance(value, str) else value
+        return value
+
+# Replace PostgreSQL UUID with SQLite-compatible one for tests
+postgresql.UUID = SQLiteUUID
+
+from main import app
+from src.infrastructure.database import Base, get_db
+from src.infrastructure.orm.user import UserORM
 
 
 @pytest.fixture(scope='function')
@@ -39,12 +51,6 @@ def test_db():
         cursor = dbapi_conn.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
-    
-    # Patch UUID column for SQLite compatibility
-    for col in Base.metadata.tables.get('users', {}).columns:
-        if col.name == 'id':
-            col.type = StringUUID()
-            break
     
     Base.metadata.create_all(bind=engine)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

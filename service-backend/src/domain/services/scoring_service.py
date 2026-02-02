@@ -37,7 +37,7 @@ class ScoringService:
 
         # 1. Valida URL
         if not ScoringService._is_valid_url(evidence_url):
-            logger.warning("Evidence URL inválida", url=evidence_url)
+            logger.warning(f"Evidence URL inválida: {evidence_url}")
             return 0
 
         # Converte para uppercase para busca

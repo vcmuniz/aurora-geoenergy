@@ -8,11 +8,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
 from src.infrastructure.database import Base
-from src.infrastructure.orm.application import Application
-from src.infrastructure.orm.release import Release
-from src.infrastructure.orm.approval import Approval
-from src.infrastructure.orm.audit_log import AuditLog
-from src.infrastructure.orm.release_event import ReleaseEvent
+from src.infrastructure.orm.application import ApplicationORM
+from src.infrastructure.orm.release import ReleaseORM
+from src.infrastructure.orm.approval import ApprovalORM
+from src.infrastructure.orm.audit_log import AuditLogORM
+from src.infrastructure.orm.release_event import ReleaseEventORM
 
 from src.application.usecases.release_usecase import ReleaseUseCase
 from src.application.usecases.approval_usecase import ApprovalUseCase
@@ -38,7 +38,7 @@ def test_db():
 @pytest.fixture
 def sample_application(test_db):
     """Criar aplicação de teste"""
-    app = Application(
+    app = ApplicationORM(
         id=uuid4(),
         name="test-app",
         owner_team="engineering",
@@ -77,7 +77,7 @@ class TestReleasePromotionFlow:
         assert release.evidence_score == 80  # HTTPS(20) + test(20) + PASS(30) + .xml(10)
         
         # Verificar audit log
-        audit_logs = test_db.query(AuditLog).all()
+        audit_logs = test_db.query(AuditLogORM).all()
         assert len(audit_logs) == 1
         assert audit_logs[0].action == "CREATE"
         assert audit_logs[0].actor == "dev@aurora.local"
@@ -89,7 +89,7 @@ class TestReleasePromotionFlow:
         assert promoted_release.environment == "PRE_PROD"
         
         # Timeline deve ter evento de promoção
-        timeline = test_db.query(ReleaseEvent).filter(
+        timeline = test_db.query(ReleaseEventORM).filter(
             ReleaseEvent.release_id == release.id,
             ReleaseEvent.event_type == "PROMOTED"
         ).all()
@@ -97,14 +97,15 @@ class TestReleasePromotionFlow:
         
         # ===== PHASE 3: APPROVE IN PRE_PROD =====
         approval_request = ApprovalRequest(
-            release_id=str(release.id),
-            approver_email="approver@aurora.local",
-            outcome="APPROVED",
             notes="Testes de integração passaram"
         )
         
         approval_usecase = ApprovalUseCase(test_db, actor_email="approver@aurora.local")
-        approval = approval_usecase.create(approval_request)
+        approval = approval_usecase.create(
+            release_id=UUID(release.id),
+            approver_email="approver@aurora.local",
+            request=approval_request
+        )
         
         # Validações Phase 3
         assert approval.outcome == "APPROVED"
@@ -118,13 +119,13 @@ class TestReleasePromotionFlow:
         assert promoted_to_prod.environment == "PROD"
         
         # Verificar que timeline tem múltiplos eventos
-        all_events = test_db.query(ReleaseEvent).filter(
+        all_events = test_db.query(ReleaseEventORM).filter(
             ReleaseEvent.release_id == release.id
         ).all()
         assert len(all_events) >= 3  # CREATE, PROMOTE (DEV→PRE), PROMOTE (PRE→PROD)
         
         # Verificar audit logs completos
-        audit_logs = test_db.query(AuditLog).all()
+        audit_logs = test_db.query(AuditLogORM).all()
         actions = [log.action for log in audit_logs]
         assert "CREATE" in actions
         assert "PROMOTE" in actions
@@ -245,7 +246,7 @@ class TestReleasePromotionFlow:
         assert approval.outcome == "REJECTED"
         
         # Audit deve registrar rejeição
-        audit_logs = test_db.query(AuditLog).filter(
+        audit_logs = test_db.query(AuditLogORM).filter(
             AuditLog.action == "REJECT"
         ).all()
         assert len(audit_logs) == 1
