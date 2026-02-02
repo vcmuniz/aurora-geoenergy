@@ -26,7 +26,7 @@ try {
         origin: ['http://localhost:4200', 'http://localhost:3000'],
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-        allowedHeaders: ['Content-Type', 'Authorization']
+        allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key']
     }));
     app.use(express_1.default.json({ limit: '10mb' }));
     app.use(express_1.default.urlencoded({ limit: '10mb', extended: true }));
