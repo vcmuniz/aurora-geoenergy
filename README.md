@@ -156,35 +156,47 @@ freezeWindows:
 
 ---
 
-## 📊 Evidence Scoring
+## 📊 Evidence Scoring (Determinístico 0-100)
 
-Arquivo: `service-backend/src/domain/services/scoring_service.py`
+O sistema calcula automaticamente um **score de 0 a 100** para cada `evidenceUrl`, baseado em análise textual da URL (sem fazer requisições HTTP).
 
-**Regras de Cálculo (0..100 pontos):**
+### Regras de Pontuação
 
-| Critério | Pontos | Exemplo |
-|---|---|---|
-| URL HTTPS | +20 | `https://ci.example.com/...` |
-| Contém "test" | +20 | `test-report-v1.0.json` |
-| Contém "PASS" | +30 | Content: `"status": "PASS"` |
-| Extensão válida (.xml/.json/.html) | +10 | `results.xml` |
-| **Score Máximo** | **100** | - |
+| Critério | Pontos | Exemplos |
+|----------|--------|----------|
+| **Protocolo HTTPS** | +20 | `https://ci.example.com/...` |
+| **Protocolo HTTP** | +10 | `http://ci.example.com/...` |
+| **Palavras-chave:** `test`, `report`, `results`, `evidence` | +20 | `/test-report`, `/results.json` |
+| **Palavra "PASS"** | +30 | `test-PASS.json`, `report-PASS` |
+| **Palavra "SUCCESS"** | +20 | `build-SUCCESS.html` |
+| **Extensões:** `.pdf`, `.html`, `.json`, `.xml`, `.png`, `.jpg` | +10 | `report.pdf`, `results.json` |
 
-**Exemplos:**
+**Pontuação máxima:** 100 pontos
+
+### Exemplos Reais
+
+```bash
+# Score alto (90 pontos) ✅ - OK para PROD
+https://ci.example.com/test-PASS-report.json
+# HTTPS(20) + test/report(20) + PASS(30) + json(10) = 80
+
+# Score médio (60 pontos) ⚠️ - Bloqueado em PROD
+https://jenkins.com/build-results.html  
+# HTTPS(20) + results(20) + html(10) = 50
+
+# Score baixo (30 pontos) ❌ - Bloqueado em PROD
+http://report.txt
+# HTTP(10) + report(20) = 30 (.txt não está na lista)
+
+# URL inválida (0 pontos) ❌
+not-a-url
 ```
-URL: https://ci.example.com/test-report-v1.0-PASS.json
-     → HTTPS (+20) + test (+20) + PASS (+30) + .json (+10) = 80 pontos ✅
 
-URL: http://report.txt
-     → 0 + 0 + 0 + 0 = 0 pontos ❌
-```
+### Policy: minScore = 70
 
-**Endpoint:** `POST /calculate-score`
-```json
-{
-  "evidence_url": "https://ci.example.com/test-PASS.json"
-}
-```
+Para promover **PRE_PROD → PROD**, o release precisa ter `score >= 70` (configurado em `policy.yaml`).
+
+**Dica:** Use URLs com `https://`, palavras-chave (`test`, `PASS`, `SUCCESS`) e extensões válidas (`.json`, `.pdf`, `.html`) para garantir score >= 70.
 
 ---
 
