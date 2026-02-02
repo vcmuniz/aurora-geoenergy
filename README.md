@@ -65,36 +65,50 @@ docker-compose logs -f db
 
 ## 🧪 Testes
 
-### Testes Unitários
+> **📋 Documentação completa:** Ver `.copilot/docs/COMO_RODAR_TESTES.md`
+
+### Executar Todos os Testes
 
 ```bash
-# Backend - Scoring Service (14 testes)
 cd service-backend
-python -m pytest tests/test_scoring_service.py -v
-
-# Backend - Policy Service (36 testes)
-python -m pytest tests/test_policy_service.py -v
-
-# Frontend - Build & Lint
-cd ../frontend-angular
-npm run lint
-npm run build
+source venv/bin/activate
+pytest -v
 ```
 
-### Teste de Integração
+**Resultado esperado:**
+```
+============================== 60 passed in 0.25s ==============================
+```
+
+### Testes Implementados (Item 8 do Desafio)
+
+**✅ 60 testes unitários cobrindo:**
+
+| Requisito | Arquivo | Qtd |
+|-----------|---------|-----|
+| Evidence Scoring (0-100) | `test_scoring_service.py` | 14 ✅ |
+| Policy-as-Code (YAML) | `test_policy_service.py` | 36 ✅ |
+| Regras de Promoção | `test_promotion_rules.py` | 10 ✅ |
+
+### Executar por Categoria
 
 ```bash
-# Backend - Fluxo completo (create → approve → promote)
-cd service-backend
-python -m pytest tests/test_integration.py -v
+# Evidence Scoring
+pytest tests/test_scoring_service.py -v
+
+# Policy (minApprovals, minScore, freezeWindows)
+pytest tests/test_policy_service.py -v
+
+# Promoção (DEV→PRE_PROD→PROD, validações)
+pytest tests/test_promotion_rules.py -v
 ```
 
-**Fluxo testado:**
-1. Criar release em DEV
-2. Promover de DEV → PRE_PROD
-3. Aprovar release em PRE_PROD
-4. Validar promoção PRE_PROD → PROD
-5. Validar bloqueio por policy (score < minScore)
+### Com Cobertura
+
+```bash
+pytest --cov=src --cov-report=html --cov-report=term
+open htmlcov/index.html
+```
 
 ---
 
@@ -304,22 +318,33 @@ AuditLog(id, actor, action, entity, entityId, payload JSON,
 
 ---
 
-## ✅ Checklist de Entrega
+## 🎯 Features Implementadas
 
-- ✅ Angular SPA com 4 páginas (Applications, Releases, Approvals, Audit)
-- ✅ Node.js Gateway com Swagger/OpenAPI
-- ✅ Python FastAPI Backend com Swagger/OpenAPI
-- ✅ PostgreSQL Database com Migrations (Alembic)
-- ✅ Policy-as-Code (YAML)
-- ✅ Evidence Scoring determinístico
-- ✅ RBAC (admin/approver/viewer)
-- ✅ Otimistic Locking + Idempotency-Key
-- ✅ Auditoria com filtros
-- ✅ Rate Limiting
-- ✅ Testes Unitários (50+)
-- ✅ Teste de Integração (create→approve→promote)
-- ✅ Docker Compose (dev + prod)
-- ✅ README.md com setup e decisões
+### ✅ Requisitos Obrigatórios (Desafio)
+
+- ✅ **Arquitetura:** Angular + Node.js Gateway + Python FastAPI + PostgreSQL
+- ✅ **Policy-as-Code:** YAML com minApprovals, minScore, freezeWindows
+- ✅ **Evidence Scoring:** Determinístico 0-100 (testado)
+- ✅ **Regras de Promoção:** DEV→PRE_PROD→PROD com validações
+- ✅ **Optimistic Locking:** versionRow em Release
+- ✅ **Idempotência:** Idempotency-Key header
+- ✅ **Auditoria:** AuditLog completo com filtros
+- ✅ **RBAC:** admin / approver / viewer
+- ✅ **Swagger/OpenAPI:** Gateway (3000/api-docs) e Backend (8000/docs)
+- ✅ **Logs estruturados:** requestId/correlationId
+- ✅ **Rate Limiting:** IP e User-based
+- ✅ **Testes:** 60 unitários (scoring, policy, promoção)
+- ✅ **Docker Compose:** dev + prod
+- ✅ **Migrations SQL:** Alembic
+
+### 🎁 Features Extras
+
+- ✅ **Angular i18n:** Traduções completas PT/EN
+- ✅ **Quick Login:** Botões rápidos para demo (admin/approver/viewer)
+- ✅ **Score Badge:** Visualização com barra de progresso
+- ✅ **Approval Count Optimization:** Backend calcula counts (1 query)
+- ✅ **Duplicate Prevention:** Constraint UNIQUE (applicationId, version, env)
+- ✅ **Freeze Window Debug:** Logs detalhados de timezone
 
 ---
 
