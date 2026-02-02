@@ -78,7 +78,10 @@ class TestIntegrationE2E:
         
         # Validações Phase 3
         assert approval.approver_email == "approver@aurora.local"
-        test_db.commit()  # Garantir persistência
+        
+        # Forçar commit e refresh da sessão
+        test_db.commit()
+        test_db.expire_all()  # Forçar reload de todas as entidades
         
         # ===== PHASE 4: PROMOTE PRE_PROD -> PROD (VALIDAÇÕES DE POLICY) =====
         # Policy valida: minApprovals (OK=1), minScore (OK>=70), freezeWindow (OK fora do horário)
