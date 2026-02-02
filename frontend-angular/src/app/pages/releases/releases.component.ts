@@ -163,23 +163,36 @@ export class ReleasesComponent implements OnInit {
     // Buscar TODAS as aprovações de uma vez só
     this.approvalService.list(0, 1000).subscribe({
       next: (response: any) => {
+        console.log('[ReleasesComponent] Response completo:', response);
         const allApprovals = response.data?.data || [];
+        console.log('[ReleasesComponent] Total de aprovações:', allApprovals.length);
+        console.log('[ReleasesComponent] Primeiras 3 aprovações:', allApprovals.slice(0, 3));
         
         // Agrupar por release_id e contar
         const countsByRelease = new Map<string, { approved: number; rejected: number }>();
         
         allApprovals.forEach((approval: any) => {
-          if (!countsByRelease.has(approval.releaseId)) {
-            countsByRelease.set(approval.releaseId, { approved: 0, rejected: 0 });
+          // Tentar ambos os formatos: releaseId e release_id
+          const releaseId = approval.releaseId || approval.release_id;
+          
+          if (!releaseId) {
+            console.warn('[ReleasesComponent] Aprovação sem releaseId:', approval);
+            return;
           }
           
-          const counts = countsByRelease.get(approval.releaseId)!;
+          if (!countsByRelease.has(releaseId)) {
+            countsByRelease.set(releaseId, { approved: 0, rejected: 0 });
+          }
+          
+          const counts = countsByRelease.get(releaseId)!;
           if (approval.outcome === 'APPROVED') {
             counts.approved++;
           } else if (approval.outcome === 'REJECTED') {
             counts.rejected++;
           }
         });
+        
+        console.log('[ReleasesComponent] Contagens por release:', Array.from(countsByRelease.entries()));
         
         // Atualizar o Map de contagem
         this.approvalCounts = countsByRelease;
