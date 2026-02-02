@@ -66,8 +66,8 @@
         </td>
         <td>
           <div class="approval-counts">
-            <span class="approved">✓ {{ getApprovalCounts(release.id).approved }}</span>
-            <span class="rejected">✗ {{ getApprovalCounts(release.id).rejected }}</span>
+            <span class="approved">✓ {{ release.approvalCount || 0 }}</span>
+            <span class="rejected">✗ {{ release.rejectionCount || 0 }}</span>
           </div>
         </td>
         <td>{{ release.createdAt | date: 'dd/MM/yyyy' }}</td>

@@ -78,7 +78,15 @@ class ReleaseUseCase:
     def list_by_application(self, app_id: UUID, skip: int = 0, limit: int = 100) -> PaginatedResponse[ReleaseResponse]:
         releases = self.repo.list_by_application(app_id, skip, limit)
         total = self.repo.count_by_application(app_id)
-        data = [ReleaseResponse.from_orm(r) for r in releases]
+        
+        # Adicionar contagem de aprovações e rejeições
+        data = []
+        for release in releases:
+            approvals = self.approval_repo.list_by_release(release.id)
+            approval_count = sum(1 for a in approvals if a.outcome == 'APPROVED')
+            rejection_count = sum(1 for a in approvals if a.outcome == 'REJECTED')
+            data.append(ReleaseResponse.from_orm(release, approval_count=approval_count, rejection_count=rejection_count))
+        
         return PaginatedResponse(data=data, total=total, skip=skip, limit=limit)
 
     def list_by_status(self, status: str, skip: int = 0, limit: int = 100) -> PaginatedResponse[ReleaseResponse]:

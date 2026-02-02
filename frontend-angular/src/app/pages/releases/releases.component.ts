@@ -24,7 +24,6 @@ export class ReleasesComponent implements OnInit {
   releases: Release[] = [];
   filteredReleases: Release[] = [];
   applications: Application[] = [];
-  approvalCounts: Map<string, { approved: number; rejected: number }> = new Map();
   loading = false;
   showForm = false;
   isEditMode = false;
@@ -122,8 +121,7 @@ export class ReleasesComponent implements OnInit {
       this.releases = responses.flatMap((response: any) => response.data?.data || []);
       this.applyFilter();
       this.loading = false;
-      // Carregar contagem de aprovações para TODAS as releases de uma vez
-      this.loadAllApprovalCounts();
+      // Não precisa mais carregar aprovações separadamente - já vêm do backend!
     }).catch((err) => {
       console.error('Erro ao carregar releases:', err);
       this.loading = false;

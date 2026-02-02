@@ -32,6 +32,8 @@ class ReleaseResponse(BaseModel):
     deployed_at: Optional[datetime] = Field(None, alias='deployedAt')
     created_at: datetime = Field(alias='createdAt')
     notes: Optional[str] = None
+    approval_count: int = Field(default=0, alias='approvalCount')
+    rejection_count: int = Field(default=0, alias='rejectionCount')
     
     @field_validator('id', 'application_id', mode='before')
     @classmethod
@@ -41,7 +43,7 @@ class ReleaseResponse(BaseModel):
         return v
     
     @staticmethod
-    def from_orm(obj, application_name: Optional[str] = None):
+    def from_orm(obj, application_name: Optional[str] = None, approval_count: int = 0, rejection_count: int = 0):
         """Convert ORM object to Response DTO, handling UUID conversion"""
         data = {
             'id': str(obj.id) if isinstance(obj.id, UUID) else obj.id,
@@ -55,6 +57,8 @@ class ReleaseResponse(BaseModel):
             'version_row': getattr(obj, 'version_row', 0),
             'deployed_at': getattr(obj, 'deployed_at', None),
             'created_at': obj.created_at,
-            'notes': getattr(obj, 'notes', None)
+            'notes': getattr(obj, 'notes', None),
+            'approval_count': approval_count,
+            'rejection_count': rejection_count
         }
         return ReleaseResponse(**data)

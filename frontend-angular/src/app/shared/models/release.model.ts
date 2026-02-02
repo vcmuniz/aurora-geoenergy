@@ -13,6 +13,8 @@ export interface Release {
   versionRow: number;
   createdAt: Date;
   deployedAt?: Date;
+  approvalCount?: number;
+  rejectionCount?: number;
 }
 
 export interface ReleaseRequest {
