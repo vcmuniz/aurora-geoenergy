@@ -196,16 +196,35 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Escutar mudanças no estado do usuário para iniciar polling quando logar
+    this.currentUser$.pipe(
+      takeWhile(() => this.isAlive)
+    ).subscribe(user => {
+      if (user) {
+        const role = user.role?.toUpperCase();
+        this.canApprove = role === 'ADMIN' || role === 'APPROVER';
+        
+        if (this.canApprove) {
+          // Carregar badge imediatamente quando usuário logar
+          this.approvalService.listPendingCurrentUser(0, 1).subscribe({
+            next: (response) => {
+              this.pendingCount = response.data?.total || 0;
+            }
+          });
+        }
+      } else {
+        this.canApprove = false;
+        this.pendingCount = 0;
+      }
+    });
+
+    // Iniciar polling se já estiver autenticado (página recarregada)
     if (this.authService.isAuthenticated()) {
       this.authService.getMe().subscribe({
         next: () => {
-          // User loaded, check permissions
           const user = this.authService.getCurrentUser();
           const role = user?.role?.toUpperCase();
-          this.canApprove = role === 'ADMIN' || role === 'APPROVER';
-          
-          // Start polling only if user can approve
-          if (this.canApprove) {
+          if (role === 'ADMIN' || role === 'APPROVER') {
             this.startPolling();
           }
         },
