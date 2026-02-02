@@ -3,7 +3,6 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Approval, ApprovalRequest, ApprovalResponse } from '@shared/models/approval.model';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +20,11 @@ export class ApprovalService {
   }
 
   constructor(private http: HttpClient) {}
+
+  private generateIdempotencyKey(): string {
+    // Usar crypto.randomUUID() nativo do navegador
+    return crypto.randomUUID();
+  }
 
   list(skip: number = 0, limit: number = 10): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}?skip=${skip}&limit=${limit}`);
@@ -58,7 +62,7 @@ export class ApprovalService {
   }
 
   approve(releaseId: string, notes?: string): Observable<any> {
-    const idempotencyKey = uuidv4();
+    const idempotencyKey = this.generateIdempotencyKey();
     const headers = new HttpHeaders({
       'Idempotency-Key': idempotencyKey
     });
@@ -78,7 +82,7 @@ export class ApprovalService {
   }
 
   reject(releaseId: string, notes?: string): Observable<any> {
-    const idempotencyKey = uuidv4();
+    const idempotencyKey = this.generateIdempotencyKey();
     const headers = new HttpHeaders({
       'Idempotency-Key': idempotencyKey
     });
