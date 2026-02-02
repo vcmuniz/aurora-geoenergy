@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Approval, ApprovalRequest, ApprovalResponse } from '@shared/models/approval.model';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable({
   providedIn: 'root'
@@ -56,21 +58,43 @@ export class ApprovalService {
   }
 
   approve(releaseId: string, notes?: string): Observable<any> {
-    const result = this.http.post<any>(
+    const idempotencyKey = uuidv4();
+    const headers = new HttpHeaders({
+      'Idempotency-Key': idempotencyKey
+    });
+    
+    console.log('[ApprovalService] approve() chamado - releaseId:', releaseId, 'idempotencyKey:', idempotencyKey);
+    
+    return this.http.post<any>(
       `${this.apiUrl}/${releaseId}/approve`,
-      { notes: notes || '' }
+      { notes: notes || '' },
+      { headers }
+    ).pipe(
+      tap(() => {
+        console.log('[ApprovalService] Aprovação bem-sucedida, notificando mudança');
+        this.approvalChangedSubject.next();
+      })
     );
-    result.subscribe(() => this.approvalChangedSubject.next());
-    return result;
   }
 
   reject(releaseId: string, notes?: string): Observable<any> {
-    const result = this.http.post<any>(
+    const idempotencyKey = uuidv4();
+    const headers = new HttpHeaders({
+      'Idempotency-Key': idempotencyKey
+    });
+    
+    console.log('[ApprovalService] reject() chamado - releaseId:', releaseId, 'idempotencyKey:', idempotencyKey);
+    
+    return this.http.post<any>(
       `${this.apiUrl}/${releaseId}/reject`,
-      { notes: notes || '' }
+      { notes: notes || '' },
+      { headers }
+    ).pipe(
+      tap(() => {
+        console.log('[ApprovalService] Rejeição bem-sucedida, notificando mudança');
+        this.approvalChangedSubject.next();
+      })
     );
-    result.subscribe(() => this.approvalChangedSubject.next());
-    return result;
   }
 
   updateApprovalOutcome(approvalId: string, request: any): Observable<any> {

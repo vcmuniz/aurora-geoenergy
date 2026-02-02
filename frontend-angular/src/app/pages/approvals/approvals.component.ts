@@ -33,6 +33,7 @@ export class ApprovalsComponent implements OnInit {
   approvalsByRelease: Map<string, any[]> = new Map();
   
   loading = false;
+  submitting = false; // Flag para prevenir double-click
   showModal = false;
   modalMode: 'approve' | 'reject' = 'approve';
   selectedReleaseId = '';
@@ -176,25 +177,46 @@ export class ApprovalsComponent implements OnInit {
       return;
     }
 
+    if (this.submitting) {
+      console.warn('[ApprovalsComponent] Já está processando uma aprovação/rejeição');
+      return;
+    }
+
+    this.submitting = true;
+    console.log('[ApprovalsComponent] submitApproval() iniciado', {
+      mode: this.modalMode,
+      releaseId: this.selectedReleaseId
+    });
+
     if (this.modalMode === 'approve') {
       this.approvalService.approve(this.selectedReleaseId, this.formData.notes).subscribe({
         next: () => {
+          console.log('[ApprovalsComponent] Aprovação concluída com sucesso');
+          this.submitting = false;
           this.allReleases = [];
           this.approvalsByRelease.clear();
           this.loadData();
           this.closeModal();
         },
-        error: (err) => console.error('Erro ao aprovar:', err)
+        error: (err) => {
+          console.error('[ApprovalsComponent] Erro ao aprovar:', err);
+          this.submitting = false;
+        }
       });
     } else {
       this.approvalService.reject(this.selectedReleaseId, this.formData.notes).subscribe({
         next: () => {
+          console.log('[ApprovalsComponent] Rejeição concluída com sucesso');
+          this.submitting = false;
           this.allReleases = [];
           this.approvalsByRelease.clear();
           this.loadData();
           this.closeModal();
         },
-        error: (err) => console.error('Erro ao rejeitar:', err)
+        error: (err) => {
+          console.error('[ApprovalsComponent] Erro ao rejeitar:', err);
+          this.submitting = false;
+        }
       });
     }
   }
