@@ -130,7 +130,8 @@ open htmlcov/index.html
 | Deletar | ✅ | ✅ | ❌ |
 | Promover | ✅ | ❌ | ❌ |
 | **Aprovações** | | | |
-| Listar | ✅ | ✅ | ✅ |
+| Acessar Menu | ✅ | ✅ | ❌ |
+| Listar | ✅ | ✅ | ❌ |
 | Aprovar | ✅ | ✅ | ❌ |
 | Rejeitar | ✅ | ✅ | ❌ |
 | **Auditoria** | | | |
@@ -138,9 +139,9 @@ open htmlcov/index.html
 
 ### Descrição dos Roles
 
-- **ADMIN**: Acesso total. Gerencia aplicações, promove releases, aprova, visualiza auditoria.
-- **APPROVER**: Cria releases, edita, deleta, aprova/rejeita. Não promove ou gerencia aplicações.
-- **VIEWER**: Apenas leitura. Visualiza aplicações, releases, approvals e audit logs.
+- **ADMIN**: Acesso total. Gerencia aplicações, promove releases, aprova, visualiza auditoria. Menu "Aprovações" visível.
+- **APPROVER**: Cria releases, edita, deleta, aprova/rejeita. Não promove ou gerencia aplicações. Menu "Aprovações" visível.
+- **VIEWER**: Apenas leitura. Visualiza aplicações, releases e audit logs. **Menu "Aprovações" não aparece** (acesso restrito).
 
 ---
 
